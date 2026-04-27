@@ -1,18 +1,12 @@
+@ -0,0 +1,768 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tauranga 2.1</title>
+  <title>Tauranga</title>
   <link rel="icon" href="assets/260421_tauranga_favicon.svg" type="image/svg+xml">
   <style>
-    @font-face {
-      font-family: 'Die Grotesk';
-      src: url('assets/Fonts/TestDieGrotesk-A-Medium.otf') format('opentype');
-      font-weight: 500;
-      font-style: normal;
-    }
-
     *, *::before, *::after {
       margin: 0;
       padding: 0;
@@ -26,7 +20,6 @@
       background: #001D32;
       user-select: none;
       -webkit-user-select: none;
-      font-family: 'Die Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     }
 
     .container {
@@ -47,19 +40,9 @@
 
     .logo {
       position: relative;
-      z-index: 40;
       width: min(65vw, 1046px);
       height: auto;
       overflow: visible;
-      transition: cursor 0.3s;
-    }
-
-    .logo.gen-idle {
-      cursor: pointer;
-    }
-
-    .logo.gen-idle path {
-      cursor: pointer !important;
     }
 
     .logo path {
@@ -74,458 +57,42 @@
       cursor: grabbing;
     }
 
-    .logo.gen-active path {
-      cursor: grab;
-    }
+    /* ---- Wave type label (corner) ---- */
 
-    .logo.gen-active path.dragging {
-      cursor: grabbing;
-    }
-
-    body.generator-on .logo path {
-      cursor: default;
-    }
-
-    body.generator-on .logo path.dragging {
-      cursor: grabbing;
-    }
-
-    /* ---- UI Panel (top-right) ---- */
-
-    .ui-panel {
+    .wave-hud {
       position: fixed;
       top: 24px;
       right: 24px;
       z-index: 100;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-    }
-
-    .mode-tabs {
-      display: flex;
-      gap: 6px;
-    }
-
-    .mode-tab {
-      padding: 7px 16px;
+      margin: 0;
+      padding: 11px 22px;
       background: transparent;
-      border: 1.5px solid rgba(255, 255, 255, 0.35);
+      border: 1.5px solid rgba(255, 255, 255, 0.45);
       border-radius: 999px;
-      color: rgba(255, 255, 255, 0.6);
-      font-family: inherit;
-      font-size: 13px;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-size: 15px;
       font-weight: 400;
-      letter-spacing: 0.015em;
+      letter-spacing: 0.02em;
       cursor: pointer;
       user-select: none;
-      transition: border-color 0.3s ease, background 0.3s ease, color 0.3s ease;
+      transition: border-color 0.3s ease, background 0.3s ease;
       appearance: none;
       -webkit-appearance: none;
     }
 
-    .mode-tab:hover {
-      border-color: rgba(255, 255, 255, 0.6);
-      background: rgba(255, 255, 255, 0.05);
-      color: rgba(255, 255, 255, 0.85);
-    }
-
-    .mode-tab.active {
-      border-color: rgba(255, 255, 255, 0.65);
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
-    }
-
-    /* ---- Sub-controls (shared layout for wave pills & gen controls) ---- */
-
-    .controls-slot {
-      position: relative;
-      margin-top: 14px;
-    }
-
-    .sub-controls, .gen-controls {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 8px;
-      opacity: 0;
-      transform: translateY(-8px);
-      pointer-events: none;
-      transition: opacity 0.45s ease, transform 0.45s ease;
-    }
-
-    .sub-controls:not(.visible), .gen-controls:not(.visible) {
-      position: absolute;
-      top: 0;
-      right: 0;
-    }
-
-    .sub-controls.visible, .gen-controls.visible {
-      opacity: 1;
-      transform: translateY(0);
-      pointer-events: auto;
-    }
-
-    .hand-tracker-btn.active {
-      border-color: rgba(255, 255, 255, 0.8);
-      background: rgba(255, 255, 255, 0.95);
-      color: #111;
-    }
-
-    .hand-tracker-btn.loading {
-      opacity: 0.5;
-      cursor: wait;
-    }
-
-    .wave-pill {
-      opacity: 0.65;
-      transition: border-color 0.3s, background 0.3s, color 0.3s, opacity 0.3s;
-    }
-
-    .wave-pill:hover {
-      opacity: 1;
-    }
-
-    .wave-pill.active {
-      border-color: rgba(255, 255, 255, 0.6);
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
-      opacity: 1;
-    }
-
-    .gen-btn {
-      padding: 7px 16px;
-      background: transparent;
-      border: 1.5px solid rgba(255, 255, 255, 0.35);
-      border-radius: 999px;
-      color: rgba(255, 255, 255, 0.85);
-      font-family: inherit;
-      font-size: 13px;
-      font-weight: 400;
-      letter-spacing: 0.015em;
-      cursor: pointer;
-      transition: border-color 0.3s, background 0.3s, color 0.3s, opacity 0.3s;
-      white-space: nowrap;
-    }
-
-    .gen-btn:hover {
-      border-color: rgba(255, 255, 255, 0.65);
+    .wave-hud:hover {
+      border-color: rgba(255, 255, 255, 0.75);
       background: rgba(255, 255, 255, 0.06);
-      color: #fff;
-    }
-
-    .gen-btn:disabled {
-      opacity: 0.4;
-      cursor: default;
-    }
-
-    .gen-checkbox-label {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      padding: 7px 16px;
-      border: 1.5px solid rgba(255, 255, 255, 0.35);
-      border-radius: 999px;
-      color: rgba(255, 255, 255, 0.85);
-      font-size: 13px;
-      cursor: pointer;
-      transition: border-color 0.3s, background 0.3s;
-    }
-
-    .gen-checkbox-label:hover {
-      border-color: rgba(255, 255, 255, 0.65);
-      background: rgba(255, 255, 255, 0.06);
-    }
-
-    .gen-checkbox-label input[type="checkbox"] {
-      width: 15px;
-      height: 15px;
-      accent-color: rgba(255, 255, 255, 0.7);
-      cursor: pointer;
-    }
-
-    /* ---- Text Input Overlay ---- */
-
-    .text-input-wrapper {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0);
-      z-index: 200;
-      opacity: 0;
-      transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease;
-      pointer-events: none;
-    }
-
-    .text-input-wrapper.visible {
-      transform: translate(-50%, -50%) scale(1);
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .text-input-wrapper.expanding {
-      pointer-events: none;
-    }
-
-    .text-input-wrapper.expanding .text-editable {
-      transform: scale(1.35);
-      opacity: 0;
-      transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.55s ease-out;
-    }
-
-    .text-editable {
-      font-family: 'Die Grotesk', sans-serif;
-      font-size: 38px;
-      font-weight: 500;
-      color: #DBD8D2;
-      text-align: center;
-      outline: none;
-      border: 1.5px solid rgba(255, 255, 255, 0.4);
-      border-radius: 999px;
-      padding: 16px 40px;
-      max-width: 700px;
-      min-width: 220px;
-      background: rgba(0, 29, 50, 0.25);
-      line-height: 1.2;
-      word-break: break-word;
-      overflow-wrap: break-word;
-      user-select: text;
-      -webkit-user-select: text;
-      transform: scale(1);
-      opacity: 1;
-      transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.55s ease-out;
-    }
-
-    .text-editable:empty::before {
-      content: attr(data-placeholder);
-      color: rgba(219, 216, 210, 0.35);
-      pointer-events: none;
-    }
-
-    /* ---- Canvas Text (committed) ---- */
-
-    .canvas-text {
-      position: fixed;
-      font-family: 'Die Grotesk', sans-serif;
-      font-size: 38px;
-      font-weight: 500;
-      color: #DBD8D2;
-      text-align: center;
-      pointer-events: auto;
-      cursor: text;
-      z-index: 50;
-      max-width: 700px;
-      line-height: 1.2;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      word-break: break-word;
-      overflow-wrap: break-word;
-    }
-
-    /* ---- Canvas Layer (photos, etc.) ---- */
-
-    /* z-index above .logo (40) so all uploaded photos sit above all shapes. */
-    #canvasLayer {
-      position: fixed;
-      inset: 0;
-      z-index: 45;
-      pointer-events: none;
-    }
-
-    .canvas-photo {
-      position: absolute;
-      cursor: grab;
-      touch-action: none;
-      pointer-events: auto;
-      object-fit: cover;
-      border-radius: 2px;
-      transition: opacity 1.8s ease;
-    }
-
-    .canvas-photo.dragging {
-      cursor: grabbing;
-    }
-
-    /* ---- Logo Watermark ---- */
-
-    /* ---- Webcam Preview ---- */
-
-    .webcam-preview {
-      position: fixed;
-      bottom: 24px;
-      left: 24px;
-      width: 140px;
-      border-radius: 12px;
-      overflow: hidden;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.6s ease;
-      z-index: 90;
-      border: 1.5px solid rgba(255, 255, 255, 0.2);
-      cursor: pointer;
-    }
-
-    .webcam-preview.visible {
-      opacity: 0.65;
-      pointer-events: auto;
-    }
-
-    .webcam-preview video {
-      width: 100%;
-      display: block;
-      transform: scaleX(-1);
-    }
-
-    .webcam-preview .webcam-hide-label {
-      position: absolute;
-      bottom: 4px;
-      left: 0;
-      right: 0;
-      text-align: center;
-      font-family: 'Die Grotesk', sans-serif;
-      font-size: 10px;
-      color: rgba(255, 255, 255, 0.7);
-      letter-spacing: 0.04em;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    .webcam-preview:hover .webcam-hide-label {
-      opacity: 1;
-    }
-
-    .webcam-show-btn {
-      position: fixed;
-      bottom: 24px;
-      left: 24px;
-      z-index: 90;
-      font-family: 'Die Grotesk', sans-serif;
-      font-size: 11px;
-      color: rgba(219, 216, 210, 0.7);
-      background: rgba(0, 29, 50, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 8px;
-      padding: 6px 12px;
-      cursor: pointer;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.4s ease, border-color 0.3s;
-    }
-
-    .webcam-show-btn.visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .webcam-show-btn:hover {
-      border-color: rgba(255, 255, 255, 0.5);
-      color: rgba(219, 216, 210, 1);
-    }
-
-    .hand-dot {
-      position: fixed;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.55);
-      box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
-      transform: translate(-50%, -50%);
-      z-index: 250;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.4s ease;
-    }
-
-    .hand-dot.visible {
-      opacity: 1;
-    }
-
-    .finger-dot {
-      position: fixed;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.4);
-      transform: translate(-50%, -50%);
-      z-index: 249;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    .finger-dot.visible {
-      opacity: 1;
-    }
-
-    .logo-watermark {
-      position: fixed;
-      left: 50%;
-      bottom: 32px;
-      transform: translateX(-50%);
-      width: 220px;
-      height: auto;
-      z-index: 55;
-      opacity: 0;
-      transition: opacity 0.8s ease, bottom 0.4s ease, left 0.4s ease;
-      pointer-events: none;
-    }
-
-    .logo-watermark.visible {
-      opacity: 1;
-    }
-
-    /* ---- Crop Overlay ---- */
-
-    .crop-overlay {
-      position: fixed;
-      z-index: 85;
-      pointer-events: none;
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.42);
-      transition: all 0.4s ease;
-    }
-
-    /* ---- Recording Indicator ---- */
-
-    .rec-indicator {
-      position: fixed;
-      top: 28px;
-      left: 28px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #ff5555;
-      font-size: 13px;
-      font-weight: 500;
-      letter-spacing: 0.02em;
-      z-index: 300;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s;
-    }
-
-    .rec-indicator.visible {
-      opacity: 1;
-    }
-
-    .rec-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #ff5555;
-      animation: recPulse 1.2s ease-in-out infinite;
-    }
-
-    @keyframes recPulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.25; }
     }
   </style>
 </head>
 <body>
-  <div class="container" id="container">
+  <div class="container">
+
+    <button type="button" class="wave-hud" id="waveHud" aria-label="Cycle motion type">
+      <span id="waveTypeLabel">Still</span>
+    </button>
 
     <!-- Background gradient -->
     <svg class="background" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
@@ -545,6 +112,8 @@
 
     <!-- Logo -->
     <svg class="logo" id="logo" viewBox="0 0 1046 155" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+      <!-- T -->
       <path data-letter="T" data-part="crossbar"
         d="M0 48.6563V2.30627H104.991V11.9813H98.9297C63.5344 11.9813 15.1172 13.3875 2.01093 49.0078C1.85624 49.4156 1.47655 49.6969 1.04061 49.6969C0.464049 49.6969 0 49.2328 0 48.6563Z"
         fill="#DBD8D2"/>
@@ -554,12 +123,16 @@
       <path data-letter="T" data-part="koru"
         d="M54.028 87.2297C50.9764 98.9578 40.2608 104.808 29.3061 104.808C13.2608 104.808 1.15296 89.7468 0.0420221 68.864C0.0138971 68.3156 0.463901 67.8515 1.01234 67.8515C1.46234 67.8515 1.84204 68.1609 1.95454 68.5828C5.65298 83.1796 15.3983 89.0156 25.9452 89.0156C41.4983 89.0156 51.1592 73.9968 43.0592 59.2452C42.8201 58.8234 42.9045 58.289 43.2701 57.9656C43.6639 57.614 44.2686 57.6281 44.6483 57.9937C53.2405 66.3187 56.4749 77.6812 54.028 87.2156V87.2297Z"
         fill="#DBD8D2"/>
+
+      <!-- A (first) -->
       <path data-letter="A1" data-part="peak"
         d="M226.139 72.8438C225.717 73.1813 225.141 73.1813 224.705 72.8438C198.886 53.4657 149.92 61.8188 127.673 151.27C127.575 151.678 127.209 151.959 126.787 151.959C126.225 151.959 125.803 151.467 125.887 150.919C135.858 85.0782 178.284 9.16882 187.903 1.3782C188.592 0.914136 189.281 0.914136 189.984 1.3782C195.455 5.24539 216.703 46.097 226.519 71.4938C226.702 71.972 226.547 72.5063 226.153 72.8298L226.139 72.8438Z"
         fill="#DBD8D2"/>
       <path data-letter="A1" data-part="base"
         d="M217.013 121.795C217.069 103.05 194.766 94.5845 181.842 107.874C181.491 108.239 180.928 108.281 180.534 107.972L180.492 107.944C180.113 107.649 180.014 107.114 180.253 106.706C194.006 83.5313 234.619 85.7111 248.217 152.002H183.488C182.981 152.002 182.559 151.58 182.559 151.074C182.559 150.595 182.925 150.202 183.403 150.16C201.066 148.374 216.956 139.345 217.013 121.824V121.795Z"
         fill="#DBD8D2"/>
+
+      <!-- U -->
       <path data-letter="U" data-part="curve"
         d="M373.021 2.31995C366.342 52.9731 350.001 154.293 301.64 154.293C274.049 154.293 262.265 119.517 262.04 87.0887C262.04 86.5684 262.462 86.1465 262.982 86.1465C263.446 86.1465 263.854 86.4981 263.91 86.9621C265.724 100.026 273.206 123.215 291.698 123.215C327.163 123.215 355.753 46.9965 363.121 2.33398H373.021V2.31995Z"
         fill="#DBD8D2"/>
@@ -569,6 +142,8 @@
       <path data-letter="U" data-part="left"
         d="M294.187 2.32035C280.181 12.0657 267.173 33.511 263.925 54.2391C263.854 54.7031 263.461 55.0406 262.983 55.0406C262.462 55.0406 262.026 54.6188 262.026 54.0844V2.30627H294.173L294.187 2.32035Z"
         fill="#DBD8D2"/>
+
+      <!-- R -->
       <path data-letter="R" data-part="stem"
         d="M423.323 151.973H400.655V98.3669C400.655 97.8325 401.09 97.3966 401.625 97.3966C402.089 97.3966 402.483 97.7341 402.567 98.1841C407.222 122.878 414.394 141.004 423.323 151.959V151.973Z"
         fill="#DBD8D2"/>
@@ -578,12 +153,16 @@
       <path data-letter="R" data-part="tail"
         d="M484.242 154.28C459.759 154.28 433.589 127.786 422.873 89.9437C422.761 89.5218 422.944 89.0718 423.309 88.8468C423.787 88.5655 424.392 88.7483 424.645 89.2546C445.57 130.865 501.483 148.373 496.111 104.442C496.04 103.88 496.476 103.387 497.039 103.387C497.362 103.387 497.672 103.556 497.84 103.823C502.355 111.22 506.798 122.878 506.798 130.317C506.798 144.83 497.587 154.266 484.228 154.266L484.242 154.28Z"
         fill="#DBD8D2"/>
+
+      <!-- A (second) -->
       <path data-letter="A2" data-part="peak"
         d="M623.799 72.8438C623.377 73.1813 622.8 73.1813 622.364 72.8438C596.545 53.4657 547.58 61.8188 525.333 151.27C525.234 151.678 524.869 151.959 524.447 151.959C523.884 151.959 523.463 151.467 523.547 150.919C533.517 85.0782 575.944 9.16882 585.563 1.3782C586.252 0.914136 586.941 0.914136 587.644 1.3782C593.114 5.24539 614.363 46.097 624.178 71.4938C624.361 71.972 624.206 72.5063 623.813 72.8298L623.799 72.8438Z"
         fill="#DBD8D2"/>
       <path data-letter="A2" data-part="base"
         d="M614.672 121.795C614.728 103.05 592.425 94.5845 579.501 107.874C579.15 108.239 578.587 108.281 578.194 107.972L578.151 107.944C577.772 107.649 577.673 107.114 577.912 106.706C591.665 83.5313 632.278 85.7111 645.876 152.002H581.147C580.64 152.002 580.219 151.58 580.219 151.074C580.219 150.595 580.584 150.202 581.062 150.16C598.725 148.374 614.615 139.345 614.672 121.824V121.795Z"
         fill="#DBD8D2"/>
+
+      <!-- N -->
       <path data-letter="N" data-part="left"
         d="M687.6 2.32035C678.67 13.275 669.769 31.4157 665.072 56.0953C664.987 56.5453 664.594 56.8828 664.129 56.8828C663.595 56.8828 663.159 56.4469 663.159 55.9125V2.30627H687.6V2.32035Z"
         fill="#DBD8D2"/>
@@ -593,224 +172,72 @@
       <path data-letter="N" data-part="right"
         d="M741.979 151.973C755.986 142.228 768.994 120.783 772.242 100.055C772.312 99.5906 772.706 99.2531 773.184 99.2531C773.704 99.2531 774.14 99.6749 774.14 100.209V151.987H741.994L741.979 151.973Z"
         fill="#DBD8D2"/>
+
+      <!-- G -->
       <path data-letter="G" data-part="body"
         d="M912.192 103.626C912.192 116.058 907.354 129.178 898.607 137.939C888.482 148.992 872.592 154.294 856.476 154.294C841.275 154.294 826.312 149.456 815.034 140.02C803.067 129.431 798.004 112.612 798.004 99.2671C798.004 75.0796 814.781 52.017 839.517 44.6624C839.911 44.5499 840.332 44.7046 840.557 45.028C840.881 45.5061 840.712 46.1389 840.206 46.4061C824.892 54.1968 813.895 70.692 813.895 91.2092C813.895 117.689 833.92 134.198 857.418 134.198C875.151 134.198 891.492 123.201 891.492 104.33C891.492 91.6592 882.154 80.9436 868.795 80.9436C865.111 80.9436 859.781 82.5748 855.9 86.0483C855.492 86.3998 854.887 86.3858 854.508 86.0061C854.184 85.6827 854.114 85.1764 854.339 84.7827C860.161 74.8545 870.314 69.3421 881.114 69.3421C898.143 69.3421 912.192 83.8546 912.192 103.655V103.626Z"
         fill="#DBD8D2"/>
       <path data-letter="G" data-part="top"
         d="M908.283 41.2312C881.592 10.7015 827.339 8.46556 803.531 39.2343C803.278 39.5718 802.828 39.6984 802.448 39.5437C801.914 39.3468 801.675 38.714 801.942 38.2218C812.095 19.0124 834.82 1.16711 861.553 1.16711C881.128 1.16711 892.87 6.00463 908.297 13.8374V41.2312H908.283Z"
         fill="#DBD8D2"/>
+
+      <!-- A (third) -->
       <path data-letter="A3" data-part="peak"
         d="M1023.3 72.8438C1022.88 73.1813 1022.3 73.1813 1021.87 72.8438C996.047 53.4657 947.081 61.8188 924.834 151.27C924.736 151.678 924.37 151.959 923.948 151.959C923.386 151.959 922.964 151.467 923.048 150.919C933.019 85.0782 975.445 9.16882 985.064 1.3782C985.753 0.914136 986.442 0.914136 987.145 1.3782C992.616 5.24539 1013.86 46.097 1023.68 71.4938C1023.86 71.972 1023.71 72.5063 1023.31 72.8298L1023.3 72.8438Z"
         fill="#DBD8D2"/>
       <path data-letter="A3" data-part="base"
         d="M1014.17 121.795C1014.23 103.05 991.926 94.5845 979.003 107.874C978.651 108.239 978.089 108.281 977.695 107.972L977.653 107.944C977.273 107.649 977.175 107.114 977.414 106.706C991.167 83.5313 1031.78 85.7111 1045.38 152.002H980.648C980.142 152.002 979.72 151.58 979.72 151.074C979.72 150.595 980.086 150.202 980.564 150.16C998.226 148.374 1014.12 139.345 1014.17 121.824V121.795Z"
         fill="#DBD8D2"/>
+
     </svg>
 
-    <!-- Canvas layer for photos / committed text -->
-    <div id="canvasLayer"></div>
-
-    <!-- Logo watermark -->
-    <img id="logoWatermark" class="logo-watermark" src="assets/260421_tauranga_logo shapes.svg" alt="">
-
-    <!-- Crop overlay -->
-    <div id="cropOverlay" class="crop-overlay" style="display:none"></div>
-
   </div>
-
-  <!-- UI Panel -->
-  <div class="ui-panel" id="uiPanel">
-    <div class="mode-tabs">
-      <button type="button" class="mode-tab active" id="tabInteractive">Interactive</button>
-      <button type="button" class="mode-tab" id="tabGenerator">Generator</button>
-    </div>
-    <div class="controls-slot">
-      <div class="sub-controls visible" id="interactiveControls">
-        <button type="button" class="gen-btn hand-tracker-btn" id="handTrackerBtn">Hand Tracker</button>
-        <button type="button" class="gen-btn" id="motionCycleBtn">Still</button>
-      </div>
-      <div class="gen-controls" id="genControls">
-        <label class="gen-checkbox-label">
-          <input type="checkbox" id="logoCheck">
-          <span>Logo</span>
-        </label>
-        <button type="button" class="gen-btn" id="uploadBtn">Upload Photos</button>
-        <button type="button" class="gen-btn" id="cropBtn">Crop: Screensize</button>
-        <button type="button" class="gen-btn" id="downloadJpegBtn">Download Image</button>
-        <button type="button" class="gen-btn" id="downloadMp4Btn">Download MP4</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Webcam preview -->
-  <div class="webcam-preview" id="webcamPreview">
-    <video id="handVideo" playsinline autoplay muted></video>
-    <span class="webcam-hide-label">Hide</span>
-  </div>
-  <button type="button" class="webcam-show-btn" id="webcamShowBtn">Show webcam</button>
-
-  <!-- Hand position dot -->
-  <div class="hand-dot" id="handDot"></div>
-  <div class="finger-dot" id="finger0"></div>
-  <div class="finger-dot" id="finger1"></div>
-  <div class="finger-dot" id="finger2"></div>
-  <div class="finger-dot" id="finger3"></div>
-  <div class="finger-dot" id="finger4"></div>
-
-  <!-- Text input overlay -->
-  <div id="textInputWrapper" class="text-input-wrapper">
-    <div id="textEditable" contenteditable="true" class="text-editable"
-         data-placeholder="What is Tauranga to you?"></div>
-  </div>
-
-  <!-- Recording indicator -->
-  <div class="rec-indicator" id="recIndicator">
-    <div class="rec-dot"></div>
-    <span id="recTimer">Recording 0s</span>
-  </div>
-
-  <!-- Hidden file input -->
-  <input type="file" id="fileInput" accept="image/*" multiple style="display:none">
-
-  <!-- MediaPipe Hands (CDN) -->
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 
   <script>
-    /* =========================================================
-       DOM REFERENCES
-       ========================================================= */
-    const logoSvg      = document.getElementById('logo');
-    const container     = document.getElementById('container');
-    const tabInteractive = document.getElementById('tabInteractive');
-    const tabGenerator   = document.getElementById('tabGenerator');
-    const interactiveControls = document.getElementById('interactiveControls');
-    const genControls   = document.getElementById('genControls');
-    const uiPanel       = document.getElementById('uiPanel');
-    const textInputWrap = document.getElementById('textInputWrapper');
-    const textEditable  = document.getElementById('textEditable');
-    const logoCheck     = document.getElementById('logoCheck');
-    const logoWatermark = document.getElementById('logoWatermark');
-    const uploadBtn     = document.getElementById('uploadBtn');
-    const fileInput     = document.getElementById('fileInput');
-    const cropBtn       = document.getElementById('cropBtn');
-    const cropOverlay   = document.getElementById('cropOverlay');
-    const dlJpegBtn     = document.getElementById('downloadJpegBtn');
-    const dlMp4Btn      = document.getElementById('downloadMp4Btn');
-    const recIndicator  = document.getElementById('recIndicator');
-    const recTimerSpan  = document.getElementById('recTimer');
-    const canvasLayer   = document.getElementById('canvasLayer');
-    const handTrackerBtn = document.getElementById('handTrackerBtn');
-    const motionCycleBtn = document.getElementById('motionCycleBtn');
-    const handVideo      = document.getElementById('handVideo');
-    const webcamPreview  = document.getElementById('webcamPreview');
-    const webcamShowBtn  = document.getElementById('webcamShowBtn');
-    const handDot        = document.getElementById('handDot');
-    const fingerDots     = [0,1,2,3,4].map(i => document.getElementById('finger' + i));
-    let webcamHidden = false;
+    const logoSvg = document.getElementById('logo');
+    const container = document.querySelector('.container');
 
-    webcamPreview.addEventListener('click', () => {
-      webcamHidden = true;
-      webcamPreview.classList.remove('visible');
-      if (handTrackerActive) webcamShowBtn.classList.add('visible');
-    });
-    webcamShowBtn.addEventListener('click', () => {
-      webcamHidden = false;
-      webcamShowBtn.classList.remove('visible');
-      if (handTrackerActive) webcamPreview.classList.add('visible');
-    });
-
-    /* =========================================================
-       CONSTANTS
-       ========================================================= */
     const LOGO_VB_W = 1046;
     const LOGO_VB_H = 155;
     const LOGO_CX = LOGO_VB_W / 2;
     const LOGO_CY = LOGO_VB_H / 2;
 
-    const HAND_TRACKER_WAVE_ID = -1;
-
+    // Template scatter layout; translateOnly = never scale (U right/left, N left/right only).
     const SCATTER_BASE = [
-      { fx:-0.38, fy:-0.18, s:2.2 },
-      { fx:-0.42, fy: 0.12, s:2.4 },
-      { fx:-0.36, fy:-0.36, s:2.8 },
-      { fx:-0.20, fy:-0.14, s:2.0 },
-      { fx:-0.26, fy: 0.30, s:2.2 },
-      { fx:-0.06, fy:-0.32, s:2.6 },
-      { fx: 0.02, fy: 0.18, s:1.8, translateOnly:true },
-      { fx:-0.16, fy: 0.08, s:2.0, translateOnly:true },
-      { fx:-0.32, fy: 0.28, s:2.0 },
-      { fx: 0.10, fy:-0.35, s:2.6 },
-      { fx: 0.06, fy: 0.30, s:2.2 },
-      { fx: 0.18, fy:-0.18, s:2.0 },
-      { fx: 0.16, fy: 0.32, s:2.2 },
-      { fx: 0.26, fy:-0.04, s:1.8, translateOnly:true },
-      { fx: 0.32, fy:-0.26, s:2.2 },
-      { fx: 0.28, fy: 0.32, s:1.8, translateOnly:true },
-      { fx: 0.40, fy: 0.06, s:2.8 },
-      { fx: 0.38, fy:-0.34, s:2.2 },
-      { fx: 0.44, fy:-0.18, s:2.0 },
-      { fx: 0.42, fy: 0.26, s:2.4 },
+      { fx: -0.38, fy: -0.18, s: 2.2 },
+      { fx: -0.42, fy:  0.12, s: 2.4 },
+      { fx: -0.36, fy: -0.36, s: 2.8 },
+      { fx: -0.20, fy: -0.14, s: 2.0 },
+      { fx: -0.26, fy:  0.30, s: 2.2 },
+      { fx: -0.06, fy: -0.32, s: 2.6 },
+      { fx:  0.02, fy:  0.18, s: 1.8, translateOnly: true },
+      { fx: -0.16, fy:  0.08, s: 2.0, translateOnly: true },
+      { fx: -0.32, fy:  0.28, s: 2.0 },
+      { fx:  0.10, fy: -0.35, s: 2.6 },
+      { fx:  0.06, fy:  0.30, s: 2.2 },
+      { fx:  0.18, fy: -0.18, s: 2.0 },
+      { fx:  0.16, fy:  0.32, s: 2.2 },
+      { fx:  0.26, fy: -0.04, s: 1.8, translateOnly: true },
+      { fx:  0.32, fy: -0.26, s: 2.2 },
+      { fx:  0.28, fy:  0.32, s: 1.8, translateOnly: true },
+      { fx:  0.40, fy:  0.06, s: 2.8 },
+      { fx:  0.38, fy: -0.34, s: 2.2 },
+      { fx:  0.44, fy: -0.18, s: 2.0 },
+      { fx:  0.42, fy:  0.26, s: 2.4 },
     ];
 
-    const REST_PAD = 50;
-    const EXPANDED_FRAC_W = 0.9;
-    const EXPANDED_FRAC_H = 0.9;
-    const MOM_EPS = 0.35;
-    const VEL_EPS = 0.02;
-    const AIR_DRAG = 0.968;
+    function cloneScatterPlanFromBase() {
+      return SCATTER_BASE.map(b => ({
+        fx: b.fx,
+        fy: b.fy,
+        s: b.translateOnly ? 1 : b.s,
+        translateOnly: !!b.translateOnly,
+      }));
+    }
 
-    const CROP_MODES = [
-      { label: 'Screensize', ar: null },
-      { label: 'Story 9:16', ar: 9/16,  outW: 1080, outH: 1920 },
-      { label: 'Post 4:5',   ar: 4/5,   outW: 1080, outH: 1350 },
-      { label: 'Square 1:1', ar: 1,     outW: 1080, outH: 1080 },
-    ];
+    let scatterPlan = cloneScatterPlanFromBase();
 
-    /* =========================================================
-       STATE
-       ========================================================= */
-    let scatterPlan = SCATTER_BASE.map(b => ({
-      fx: b.fx, fy: b.fy,
-      s: b.translateOnly ? 1 : b.s,
-      translateOnly: !!b.translateOnly,
-      outsideCrop: false, // when true, shape's target sits outside the active crop
-      outFx: 0, outFy: 0, // viewport-relative target used when outsideCrop is true
-    }));
-
-    let mouseActive = false, mouseX = 0, mouseY = 0;
-    let padT = 0, expandedMode = false;
-    let wasInResting = false, wasInExpanded = false, pendingScatterRoll = false;
-
-    let draggingShape = null, dragPointerId = null;
-    let dragLastClientX = 0, dragLastClientY = 0, dragLastTime = 0;
-
-    let waveVariantFrom = 0, waveVariantTo = 0, waveVariantBlendT = 1;
-    const WAVE_TRAVEL_LR = 0.22, WAVE_TRAVEL_TB = 0.18;
-    const RIPPLE_TIME = WAVE_TRAVEL_LR, RIPPLE_SPATIAL = 5.65, RIPPLE_RADIAL_PX = 42;
-
-    let isGenerator = false;
-    let genActivated = false;
-    let genExpandProgress = 0;
-
-    const canvasPhotos = [];
-    const canvasTexts  = [];
-    let draggingPhoto = null;
-
-    let cropMode = 0;
-
-    let isRecording = false;
-    let recCanvas, recCtx, mediaRecorder, recChunks, recStart;
-
-    let lastTime = performance.now();
-
-    // Preload watermark image for canvas rendering
-    const logoWatermarkImg = new Image();
-    logoWatermarkImg.src = 'assets/260421_tauranga_logo shapes.svg';
-
-    /* =========================================================
-       SHAPE INIT
-       ========================================================= */
+    // Build shape state array
     const shapes = [];
     const pathEls = logoSvg.querySelectorAll('path');
     const pathOrder = Array.from(pathEls);
@@ -823,51 +250,43 @@
       const mass = Math.max(0.75, Math.min(3.2, Math.sqrt(area) / 28));
       shapes.push({
         el,
-        path2d: new Path2D(el.getAttribute('d')),
         originX: bbox.x + bbox.width / 2,
         originY: bbox.y + bbox.height / 2,
-        layoutX: 0, layoutY: 0, currentScale: 1,
-        momX: 0, momY: 0, velX: 0, velY: 0,
-        scatterX: 0, scatterY: 0,
+        layoutX: 0,
+        layoutY: 0,
+        currentScale: 1,
+        momX: 0,
+        momY: 0,
+        velX: 0,
+        velY: 0,
+        scatterX: 0,
+        scatterY: 0,
         scatterScale: translateOnly ? 1 : base.s,
-        translateOnly, mass,
+        translateOnly,
+        mass,
         speed: 0.01 + Math.random() * 0.012,
+        /** When exiting play zone, scale snaps down faster than translation (see animate). */
         scaleReturnBoost: 4.2 + Math.random() * 0.8,
         idleFreqX: 0.25 + Math.random() * 0.35,
         idleFreqY: 0.20 + Math.random() * 0.30,
         idlePhase: Math.random() * Math.PI * 2,
         idleAmp: 1.0 + Math.random() * 1.5,
-        genDriftSpeedX: 0, genDriftSpeedY: 0,
-        genDriftX: 0, genDriftY: 0,
-        offscreenSince: 0,
-        userDropped: false, // true once the user has dragged this shape in generator
       });
     });
 
-    /* =========================================================
-       SCATTER COMPUTATION (existing)
-       ========================================================= */
+    // Compute pixel-space scatter offsets
     function computeScatterOffsets() {
       const svgRect = logoSvg.getBoundingClientRect();
       const pxPerUnit = svgRect.width / LOGO_VB_W;
       const svgScreenCX = svgRect.left + svgRect.width / 2;
-      const svgScreenCY = svgRect.top  + svgRect.height / 2;
-      // Use crop bounds so shapes scatter within the active crop region.
-      // When cropMode === 0, getCropBounds() returns the full viewport.
-      const c = getCropBounds();
-      const vw = window.innerWidth, vh = window.innerHeight;
+      const svgScreenCY = svgRect.top + svgRect.height / 2;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+
       shapes.forEach((shape, i) => {
         const p = scatterPlan[i];
-        let targetPxX, targetPxY;
-        if (isGenerator && p.outsideCrop) {
-          // Shapes flagged "outside" sit in the dimmed area beyond the crop
-          // so the focal area inside the crop reads less cluttered.
-          targetPxX = vw * (0.5 + p.outFx);
-          targetPxY = vh * (0.5 + p.outFy);
-        } else {
-          targetPxX = c.x + c.w * (0.5 + p.fx);
-          targetPxY = c.y + c.h * (0.5 + p.fy);
-        }
+        const targetPxX = vw * (0.5 + p.fx);
+        const targetPxY = vh * (0.5 + p.fy);
         const homePxX = svgScreenCX + (shape.originX - LOGO_CX) * pxPerUnit;
         const homePxY = svgScreenCY + (shape.originY - LOGO_CY) * pxPerUnit;
         shape.scatterX = targetPxX - homePxX;
@@ -875,761 +294,418 @@
       });
     }
 
-    const GEN_TEXT_ZONE_V = 0.14;
-
     function rollScatterLayout() {
-      const fxJ = 0.2, fyJ = 0.185;
-      const gfx = (Math.random() - 0.5) * 0.09;
-      const gfy = (Math.random() - 0.5) * 0.08;
+      const fxJitter = 0.2;
+      const fyJitter = 0.185;
+      const globalFx = (Math.random() - 0.5) * 0.09;
+      const globalFy = (Math.random() - 0.5) * 0.08;
       scatterPlan = SCATTER_BASE.map(base => {
-        let fx = base.fx + (Math.random()-0.5)*2*fxJ + gfx;
-        let fy = base.fy + (Math.random()-0.5)*2*fyJ + gfy;
-        if (Math.random() < 0.4) { fx += (Math.random()-0.5)*0.11; fy += (Math.random()-0.5)*0.11; }
+        let fx = base.fx + (Math.random() - 0.5) * 2 * fxJitter + globalFx;
+        let fy = base.fy + (Math.random() - 0.5) * 2 * fyJitter + globalFy;
+        if (Math.random() < 0.4) {
+          fx += (Math.random() - 0.5) * 0.11;
+          fy += (Math.random() - 0.5) * 0.11;
+        }
         fx = Math.max(-0.49, Math.min(0.49, fx));
         fy = Math.max(-0.44, Math.min(0.44, fy));
-
-        if (isGenerator) {
-          if (Math.abs(fy) < GEN_TEXT_ZONE_V) {
-            fy = fy >= 0
-              ? GEN_TEXT_ZONE_V + Math.random() * 0.24
-              : -(GEN_TEXT_ZONE_V + Math.random() * 0.24);
-            fy = Math.max(-0.44, Math.min(0.44, fy));
-          }
-        }
-
-        const to = !!base.translateOnly;
+        const translateOnly = !!base.translateOnly;
         let s = 1;
-        if (!to) {
-          if (isGenerator) {
-            // Wide variation so some shapes read as 'far' (small) and others
-            // 'near' (large) for a sense of depth, even though every photo
-            // now layers above every shape.
-            s = 0.32 + Math.random() * 2.05;
-            s = Math.max(0.3, Math.min(2.4, s));
-          } else {
-            s = base.s * (0.68 + Math.random()*0.62);
-            s = Math.max(1.1, Math.min(2.76, s));
-          }
+        if (!translateOnly) {
+          s = base.s * (0.68 + Math.random() * 0.62);
+          s = Math.max(1.28, Math.min(3.45, s));
         }
-        return { fx, fy, s, translateOnly: to, outsideCrop: false, outFx: 0, outFy: 0 };
+        return { fx, fy, s, translateOnly };
       });
+      computeScatterOffsets();
       shapes.forEach((shape, i) => {
         shape.scatterScale = scatterPlan[i].translateOnly ? 1 : scatterPlan[i].s;
-      });
-      // Assign which shapes sit outside the crop based on its size, then
-      // resolve all scatter targets.
-      pickOutsideCropMembership({ resetAll: true });
-    }
-
-    /* Choose which shapes live outside the active crop and re-distribute the
-       inside ones across an even grid. Smaller crops keep noticeably fewer
-       shapes inside so the focal area doesn't feel cluttered, and each call
-       reshuffles positions so the layout looks fresh after every crop change.
-       Shapes the user has personally dragged ("userDropped") keep both their
-       inside/outside flag and their fx/fy so manual placements survive. */
-    function pickOutsideCropMembership(opts) {
-      opts = opts || {};
-      if (!scatterPlan || !scatterPlan.length) return;
-
-      const c = getCropBounds();
-      const vw = window.innerWidth, vh = window.innerHeight;
-      const cropFrac = Math.max(0.05, Math.min(1, (c.w * c.h) / (vw * vh)));
-
-      // How many shapes should sit outside the crop? Tighter crops push more
-      // shapes out so the focal area reads light: 9:16 keeps ~9, 4:5 ~10,
-      // 1:1 ~12, full screen all 20.
-      let outsideCount = 0;
-      if (isGenerator && cropFrac < 0.95) {
-        outsideCount = Math.round(SCATTER_BASE.length * (1 - cropFrac) * 0.85);
-      }
-
-      // Build the candidate pool. Skip user-dropped shapes so manual placements
-      // are preserved; still count them toward locked totals so the budget
-      // isn't exceeded.
-      const candidates = [];
-      let lockedOutsideCount = 0;
-      scatterPlan.forEach((p, i) => {
-        if (!opts.resetAll && shapes[i].userDropped) {
-          if (p.outsideCrop) lockedOutsideCount++;
-          return;
-        }
-        candidates.push(i);
-      });
-
-      // Shuffle candidates
-      for (let i = candidates.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
-      }
-
-      const remainingOutsideBudget = Math.max(0, outsideCount - lockedOutsideCount);
-      const newOutsideSet = new Set(candidates.slice(0, remainingOutsideBudget));
-
-      // Crop edges expressed as fractions of viewport (centred at 0).
-      const cropFxMin = (c.x - vw / 2) / vw;
-      const cropFxMax = (c.x + c.w - vw / 2) / vw;
-      const cropFyMin = (c.y - vh / 2) / vh;
-      const cropFyMax = (c.y + c.h - vh / 2) / vh;
-      const edgeMargin = 0.04; // keep shapes a touch inside the viewport edge
-
-      // First pass: assign outside flag + outFx/outFy.
-      scatterPlan.forEach((p, i) => {
-        if (!opts.resetAll && shapes[i].userDropped) return;
-
-        const wantsOutside = newOutsideSet.has(i);
-        if (wantsOutside) {
-          const sides = [];
-          if (cropFxMax < 0.5 - edgeMargin)  sides.push('right');
-          if (cropFxMin > -0.5 + edgeMargin) sides.push('left');
-          if (cropFyMax < 0.5 - edgeMargin)  sides.push('bottom');
-          if (cropFyMin > -0.5 + edgeMargin) sides.push('top');
-
-          if (sides.length === 0) {
-            // Crop fills the viewport — nowhere to hide. Keep inside.
-            p.outsideCrop = false;
-          } else {
-            const side = sides[Math.floor(Math.random() * sides.length)];
-            if (side === 'right') {
-              p.outFx = cropFxMax + Math.random() * (0.5 - edgeMargin - cropFxMax);
-              p.outFy = -0.42 + Math.random() * 0.84;
-            } else if (side === 'left') {
-              p.outFx = cropFxMin - Math.random() * (cropFxMin + 0.5 - edgeMargin);
-              p.outFy = -0.42 + Math.random() * 0.84;
-            } else if (side === 'bottom') {
-              p.outFx = -0.42 + Math.random() * 0.84;
-              p.outFy = cropFyMax + Math.random() * (0.5 - edgeMargin - cropFyMax);
-            } else { // top
-              p.outFx = -0.42 + Math.random() * 0.84;
-              p.outFy = cropFyMin - Math.random() * (cropFyMin + 0.5 - edgeMargin);
-            }
-            p.outsideCrop = true;
-          }
-        } else {
-          p.outsideCrop = false;
-        }
-      });
-
-      // Second pass: spread inside (non-dropped) shapes evenly using a
-      // shuffled grid keyed to the crop's aspect.
-      const insideIndices = [];
-      scatterPlan.forEach((p, i) => {
-        if (!opts.resetAll && shapes[i].userDropped) return;
-        if (!p.outsideCrop) insideIndices.push(i);
-      });
-      distributeInsideShapesEvenly(insideIndices, c);
-
-      computeScatterOffsets();
-    }
-
-    /* Place a list of shapes evenly within the crop by choosing cells from a
-       shuffled grid sized to the crop's aspect ratio, then jittering inside
-       each cell so the result still feels organic. */
-    function distributeInsideShapesEvenly(insideIndices, c) {
-      const n = insideIndices.length;
-      if (!n) return;
-
-      const aspect = Math.max(0.4, Math.min(2.5, c.w / Math.max(1, c.h)));
-      // Cells roughly square in pixel space → cols scales with aspect.
-      const cols = Math.max(2, Math.ceil(Math.sqrt(n * aspect)));
-      const rows = Math.max(2, Math.ceil(n / cols));
-      const cellW = 1 / cols;
-      const cellH = 1 / rows;
-
-      const cells = [];
-      for (let r = 0; r < rows; r++) {
-        for (let col = 0; col < cols; col++) {
-          cells.push({
-            fxCenter: -0.5 + (col + 0.5) * cellW,
-            fyCenter: -0.5 + (r + 0.5) * cellH,
-          });
-        }
-      }
-      // Shuffle so each crop change reorders which cells get used.
-      for (let i = cells.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [cells[i], cells[j]] = [cells[j], cells[i]];
-      }
-
-      insideIndices.forEach((idx, k) => {
-        const cell = cells[k % cells.length];
-        const jx = (Math.random() - 0.5) * cellW * 0.7;
-        const jy = (Math.random() - 0.5) * cellH * 0.7;
-        let fx = cell.fxCenter + jx;
-        let fy = cell.fyCenter + jy;
-        // Keep clear of the central text band.
-        if (Math.abs(fy) < GEN_TEXT_ZONE_V) {
-          fy = fy >= 0
-            ? GEN_TEXT_ZONE_V + Math.random() * 0.18
-            : -(GEN_TEXT_ZONE_V + Math.random() * 0.18);
-        }
-        fx = Math.max(-0.46, Math.min(0.46, fx));
-        fy = Math.max(-0.44, Math.min(0.44, fy));
-        scatterPlan[idx].fx = fx;
-        scatterPlan[idx].fy = fy;
       });
     }
 
     computeScatterOffsets();
 
-    /* =========================================================
-       MOUSE TRACKING
-       ========================================================= */
-    let handDetected = false;
-    let handPresentT = 0;
-    let genMouseLeft = false;
+    // Mouse tracking
+    let mouseActive = false;
+    let mouseX = 0;
+    let mouseY = 0;
+
     container.addEventListener('mousemove', e => {
-      if (handTrackerActive) return;
-      mouseActive = true; mouseX = e.clientX; mouseY = e.clientY; genMouseLeft = false;
-    });
-    container.addEventListener('mouseleave', () => {
-      if (handTrackerActive || handDetected) return;
-      if (isGenerator) {
-        genMouseLeft = true;
-      } else {
-        mouseActive = false;
-      }
+      mouseActive = true;
+      mouseX = e.clientX;
+      mouseY = e.clientY;
     });
 
-    /* =========================================================
-       ZONE HELPERS (existing)
-       ========================================================= */
+    container.addEventListener('mouseleave', () => {
+      mouseActive = false;
+    });
+
+    const REST_PAD = 50;
+    const EXPANDED_FRAC_W = 0.9;
+    const EXPANDED_FRAC_H = 0.9;
+    /** 0 = resting pad, 1 = expanded; lerps much faster than the shapes. */
+    let padT = 0;
+    let expandedMode = false;
+    let wasInResting = false;
+    let wasInExpanded = false;
+    /** True after leaving the expanded hover pad (90vw×90vh) or the view; new layout on next expanded entry. */
+    let pendingScatterRoll = false;
+
+    /** Pointer drag + inertia (honours layout lerp from hover pad / resting). */
+    let draggingShape = null;
+    let dragPointerId = null;
+    let dragLastClientX = 0;
+    let dragLastClientY = 0;
+    let dragLastTime = 0;
+    const MOM_EPS = 0.35;
+    const VEL_EPS = 0.02;
+    /** Extra velocity damping per frame unit (higher = thicker air). */
+    const AIR_DRAG = 0.988;
+
+    function frictionForMass(mass, dt) {
+      const base = 0.965 + (mass - 0.75) * 0.0024;
+      return Math.pow(Math.max(0.955, Math.min(0.978, base)), dt);
+    }
+
+    function shapeFromEventTarget(target) {
+      if (!target || !logoSvg.contains(target)) return null;
+      const path = target.closest && target.closest('path');
+      if (!path || !logoSvg.contains(path)) return null;
+      return shapes.find(s => s.el === path) || null;
+    }
+
     function getRestingZone() {
       const r = logoSvg.getBoundingClientRect();
-      return { left: r.left-REST_PAD, top: r.top-REST_PAD, right: r.right+REST_PAD, bottom: r.bottom+REST_PAD };
+      return {
+        left: r.left - REST_PAD,
+        top: r.top - REST_PAD,
+        right: r.right + REST_PAD,
+        bottom: r.bottom + REST_PAD,
+      };
     }
+
     function getExpandedZone() {
-      const vw = window.innerWidth, vh = window.innerHeight;
-      const w = vw*EXPANDED_FRAC_W, h = vh*EXPANDED_FRAC_H;
-      const left = (vw-w)/2, top = (vh-h)/2;
-      return { left, top, right: left+w, bottom: top+h, w, h, vw, vh };
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const w = vw * EXPANDED_FRAC_W;
+      const h = vh * EXPANDED_FRAC_H;
+      const left = (vw - w) / 2;
+      const top = (vh - h) / 2;
+      return { left, top, right: left + w, bottom: top + h, w, h, vw, vh };
     }
-    function pointInRect(px, py, r) { return px>=r.left && px<=r.right && py>=r.top && py<=r.bottom; }
+
+    function pointInRect(px, py, r) {
+      return px >= r.left && px <= r.right && py >= r.top && py <= r.bottom;
+    }
+
+    /** Normalized cursor in expanded zone (−1…1), viewport-centered. */
     function parallaxNudge(z) {
-      const cx=z.vw*0.5, cy=z.vh*0.5;
-      const hw=Math.max(z.w*0.5,8), hh=Math.max(z.h*0.5,8);
-      return { nx: Math.max(-1,Math.min(1,(mouseX-cx)/hw)), ny: Math.max(-1,Math.min(1,(mouseY-cy)/hh)) };
-    }
-    function smoothstep01(t) { const x=Math.max(0,Math.min(1,t)); return x*x*(3-2*x); }
-    function frictionForMass(mass, dt) {
-      const b = 0.965 + (mass-0.75)*0.0024;
-      return Math.pow(Math.max(0.955, Math.min(0.978, b)), dt);
+      const cx = z.vw * 0.5;
+      const cy = z.vh * 0.5;
+      const halfW = Math.max(z.w * 0.5, 8);
+      const halfH = Math.max(z.h * 0.5, 8);
+      const nx = (mouseX - cx) / halfW;
+      const ny = (mouseY - cy) / halfH;
+      return {
+        nx: Math.max(-1, Math.min(1, nx)),
+        ny: Math.max(-1, Math.min(1, ny)),
+      };
     }
 
-    /* =========================================================
-       WAVE DISPLACEMENT (existing – all 6 variants)
-       ========================================================= */
+    // Animation loop
+    let lastTime = performance.now();
+
+    /** Motion while expanded: Still = base Interaction scatter only; others add wave modulation. */
+    const WAVE_VARIANT_LABELS = [
+      'Still',
+      'Swell',
+      'Tide',
+      'River',
+      'Storm',
+      'Ripple',
+    ];
+    let waveVariantFrom = 0;
+    let waveVariantTo = 0;
+    /** 0…1 while blending from waveVariantFrom → waveVariantTo; 1 = settled. */
+    let waveVariantBlendT = 1;
+    const WAVE_TRAVEL_LR = 0.22;
+    const WAVE_TRAVEL_TB = 0.18;
+    /** Ripple: same temporal rate as Swell/River (WAVE_TRAVEL_LR); phase = t*ω − r*k → rings expand outward. */
+    const RIPPLE_TIME = WAVE_TRAVEL_LR;
+    const RIPPLE_SPATIAL = 5.65;
+    const RIPPLE_RADIAL_PX = 42;
+
+    function smoothstep01(t) {
+      const x = Math.max(0, Math.min(1, t));
+      return x * x * (3 - 2 * x);
+    }
+
     function waveDispForVariant(shape, i, variant, tSec) {
-      const sx=shape.scatterX, sy=shape.scatterY, ssc=shape.scatterScale;
-      const xN=shape.originX/LOGO_VB_W, yN=shape.originY/LOGO_VB_H;
-      const pLR=xN*Math.PI*2 - tSec*WAVE_TRAVEL_LR;
-      const pTB=yN*Math.PI*2 - tSec*WAVE_TRAVEL_TB;
-      const eLR=0.52+0.48*Math.sin(pLR), eTB=0.52+0.48*Math.sin(pTB);
-      let tx=0, ty=0, sc=1;
+      const sx = shape.scatterX;
+      const sy = shape.scatterY;
+      const ssc = shape.scatterScale;
+      const xNorm = shape.originX / LOGO_VB_W;
+      const yNorm = shape.originY / LOGO_VB_H;
+      const phaseLR = xNorm * Math.PI * 2 - tSec * WAVE_TRAVEL_LR;
+      const phaseTB = yNorm * Math.PI * 2 - tSec * WAVE_TRAVEL_TB;
+      const envLR = 0.52 + 0.48 * Math.sin(phaseLR);
+      const envTB = 0.52 + 0.48 * Math.sin(phaseTB);
 
-      if (variant===0) { tx=sx; ty=sy; sc=ssc; }
-      else if (variant===1) { tx=sx*eLR; ty=sy*eLR; sc=shape.translateOnly?1:1+(ssc-1)*eLR; }
-      else if (variant===2) { tx=0; ty=sy*eTB; sc=shape.translateOnly?1:1+(ssc-1)*eTB; }
-      else if (variant===3) { tx=sx*eLR; ty=0; sc=shape.translateOnly?1:1+(ssc-1)*eLR; }
-      else if (variant===4) {
-        const a=shape.idlePhase+i*0.73;
-        const n1=Math.sin(tSec*0.19+a*2.1), n2=Math.cos(tSec*0.14+a*1.3), n3=Math.sin(tSec*0.11+i*0.91);
-        const w=Math.max(0.15,Math.min(1,0.38+0.31*n1+0.21*n2+0.18*n3));
-        tx=sx*w; ty=sy*w; sc=shape.translateOnly?1:1+(ssc-1)*w;
-      } else if (variant===5) {
-        let rdx=shape.originX-LOGO_CX, rdy=shape.originY-LOGO_CY;
-        if (Math.abs(rdx)<1e-6&&Math.abs(rdy)<1e-6){const a=shape.idlePhase;rdx=Math.cos(a);rdy=Math.sin(a);}
-        const rVb=Math.max(Math.hypot(rdx,rdy),1e-3), ux=rdx/rVb, uy=rdy/rVb;
-        const r01=Math.min(rVb/(0.48*LOGO_VB_W),1.35);
-        const phase=tSec*RIPPLE_TIME-r01*RIPPLE_SPATIAL, ring=Math.sin(phase);
-        const og=smoothstep01(Math.max(0,Math.min(1,(r01-0.025)/0.82)));
-        const radial=ring*RIPPLE_RADIAL_PX*(0.2+0.8*og);
-        const breathe=0.57+0.43*(0.5+0.5*ring);
-        tx=sx*breathe+ux*radial; ty=sy*breathe+uy*radial;
-        sc=shape.translateOnly?1:1+(ssc-1)*(0.5+0.5*(0.5+0.5*ring));
+      let tx = 0;
+      let ty = 0;
+      let sc = 1;
+
+      if (variant === 0) {
+        tx = sx;
+        ty = sy;
+        sc = ssc;
+      } else if (variant === 1) {
+        tx = sx * envLR;
+        ty = sy * envLR;
+        sc = shape.translateOnly ? 1 : 1 + (ssc - 1) * envLR;
+      } else if (variant === 2) {
+        tx = 0;
+        ty = sy * envTB;
+        sc = shape.translateOnly ? 1 : 1 + (ssc - 1) * envTB;
+      } else if (variant === 3) {
+        tx = sx * envLR;
+        ty = 0;
+        sc = shape.translateOnly ? 1 : 1 + (ssc - 1) * envLR;
+      } else if (variant === 4) {
+        const a = shape.idlePhase + i * 0.73;
+        const n1 = Math.sin(tSec * 0.19 + a * 2.1);
+        const n2 = Math.cos(tSec * 0.14 + a * 1.3);
+        const n3 = Math.sin(tSec * 0.11 + i * 0.91);
+        const chaos = 0.38 + 0.31 * n1 + 0.21 * n2 + 0.18 * n3;
+        const w = Math.max(0.15, Math.min(1, chaos));
+        tx = sx * w;
+        ty = sy * w;
+        sc = shape.translateOnly ? 1 : 1 + (ssc - 1) * w;
+      } else if (variant === 5) {
+        let rdx = shape.originX - LOGO_CX;
+        let rdy = shape.originY - LOGO_CY;
+        if (Math.abs(rdx) < 1e-6 && Math.abs(rdy) < 1e-6) {
+          const a = shape.idlePhase;
+          rdx = Math.cos(a);
+          rdy = Math.sin(a);
+        }
+        const rVb = Math.max(Math.hypot(rdx, rdy), 1e-3);
+        const ux = rdx / rVb;
+        const uy = rdy / rVb;
+        const r01 = Math.min(rVb / (0.48 * LOGO_VB_W), 1.35);
+        const phase = tSec * RIPPLE_TIME - r01 * RIPPLE_SPATIAL;
+        const ring = Math.sin(phase);
+        const outwardGain = smoothstep01(
+          Math.max(0, Math.min(1, (r01 - 0.025) / 0.82))
+        );
+        const radial = ring * RIPPLE_RADIAL_PX * (0.2 + 0.8 * outwardGain);
+        const breathe = 0.57 + 0.43 * (0.5 + 0.5 * ring);
+        tx = sx * breathe + ux * radial;
+        ty = sy * breathe + uy * radial;
+        sc = shape.translateOnly
+          ? 1
+          : 1 + (ssc - 1) * (0.5 + 0.5 * (0.5 + 0.5 * ring));
       }
+
       return { tx, ty, sc };
     }
 
-    /* =========================================================
-       ANIMATION LOOP
-       ========================================================= */
     function animate(time) {
       const rawDt = (time - lastTime) / 16.667;
       const dt = Math.min(rawDt, 4);
       lastTime = time;
-      const t = time * 0.001;
 
-      if (isGenerator) {
-        animateGenerator(dt, t, time);
-      } else {
-        animateWaveMode(dt, t, time);
-      }
-
-      /* Hand openness → smoothed gather factor */
-      if (handTrackerActive && handDetected) {
-        handPresentT = Math.min(handPresentT + dt * 0.016, 1);
-        const entryEase = handPresentT * handPresentT;
-        const opening = handOpenness > smoothOpenness;
-        const openK = 0.008 + entryEase * (opening ? 0.42 : 0.212);
-        smoothOpenness += (handOpenness - smoothOpenness) * (1 - Math.pow(1 - openK, dt));
-      } else {
-        handPresentT = 0;
-        smoothOpenness += (0 - smoothOpenness) * (1 - Math.pow(1 - 0.008, dt));
-      }
-
-      /* Momentum & velocity (shared by both modes) */
-      const momSpK = isGenerator ? 0 : (!expandedMode ? 0.022 : 0);
-      const momD   = isGenerator ? 0.96 : (expandedMode ? 1 : 0.88);
-      const momReturn = 1 - Math.pow(1 - 0.003, dt);
-      const evw = window.innerWidth, evh = window.innerHeight;
-      const ecx = evw * 0.5, ecy = evh * 0.5;
-      const eMaxR = Math.hypot(ecx, ecy);
-      const svgR = logoSvg.getBoundingClientRect();
-      const ePpu = svgR.width / LOGO_VB_W;
-
-      shapes.forEach(shape => {
-        if (shape === draggingShape) return;
-        const invM = 1 / shape.mass;
-        shape.velX -= shape.momX * momSpK * dt * invM;
-        shape.velY -= shape.momY * momSpK * dt * invM;
-        shape.velX *= momD;
-        shape.velY *= momD;
-        const fr = frictionForMass(shape.mass, dt);
-        const drag = handTrackerActive ? 0.9992 : AIR_DRAG;
-        const air = Math.pow(drag, dt);
-        shape.velX *= fr * air;
-        shape.velY *= fr * air;
-
-        const sx = svgR.left + shape.originX * ePpu + shape.layoutX + shape.momX;
-        const sy = svgR.top  + shape.originY * ePpu + shape.layoutY + shape.momY;
-        const edgeDist = Math.hypot(sx - ecx, sy - ecy) / eMaxR;
-        const edgeFactor = Math.max(0, edgeDist - 0.35) / 0.65;
-        const viscosity = Math.pow(1 - 0.35 * edgeFactor * edgeFactor, dt);
-        shape.velX *= viscosity;
-        shape.velY *= viscosity;
-
-        shape.momX += shape.velX * dt;
-        shape.momY += shape.velY * dt;
-        const closed = 1 - smoothOpenness;
-        const noHand = handTrackerActive && !handDetected ? 1 : 0;
-        const handMr = momReturn * (0.15 + (noHand ? 0.1 : closed * closed * 2.5));
-        const mr = handTrackerActive ? Math.min(handMr, 1) : momReturn;
-        shape.momX -= shape.momX * mr;
-        shape.momY -= shape.momY * mr;
-
-        shape.momX *= viscosity;
-        shape.momY *= viscosity;
-
-        if (Math.abs(shape.momX)<MOM_EPS && Math.abs(shape.momY)<MOM_EPS &&
-            Math.abs(shape.velX)<VEL_EPS && Math.abs(shape.velY)<VEL_EPS) {
-          shape.momX=0; shape.momY=0; shape.velX=0; shape.velY=0;
-        }
-      });
-
-      /* Hand proximity push (interactive mode only) */
-      if (handTrackerActive && handDetected && !isGenerator) {
-        const hSvgRect = logoSvg.getBoundingClientRect();
-        const hPpu = hSvgRect.width / LOGO_VB_W;
-        const handSpeed = Math.hypot(handVelX, handVelY);
-        const velBoost = Math.min(handSpeed * 0.8, 14);
-
-        const closed = 1 - smoothOpenness;
-        const opened = smoothOpenness;
-        const pushRadius = opened * opened * 320 + Math.min(handSpeed * opened * 1.2, 60);
-        const pushStrength = opened * opened * 4;
-
-        shapes.forEach(shape => {
-          if (shape === draggingShape) return;
-          if (pushRadius < 5 && handSpeed < 3) return;
-          const sx = hSvgRect.left + shape.originX * hPpu + shape.layoutX + shape.momX;
-          const sy = hSvgRect.top  + shape.originY * hPpu + shape.layoutY + shape.momY;
-          const dx = sx - smoothHandX;
-          const dy = sy - smoothHandY;
-          const dist = Math.hypot(dx, dy);
-          const effectiveRadius = Math.max(pushRadius, handSpeed * 2);
-          if (dist < 1 || dist > effectiveRadius) return;
-          const ux = dx / dist, uy = dy / dist;
-          const depthMul = 0.5 + shape.scatterScale * 0.5;
-          let fx = 0, fy = 0;
-
-          if (pushRadius > 5) {
-            const t = 1 - dist / pushRadius;
-            if (t > 0) {
-              const f = t * t;
-              const push = f * pushStrength * depthMul * dt / shape.mass;
-              fx += ux * push;
-              fy += uy * push;
-            }
-          }
-
-          if (handSpeed > 3 && opened > 0.25) {
-            const bumpR = Math.max(pushRadius, handSpeed * 2 * opened);
-            const bt = Math.max(0, 1 - dist / bumpR);
-            const bf = bt * bt * Math.min(velBoost, 10) * depthMul * dt / shape.mass * opened;
-            fx += handVelX * bf * 0.35;
-            fy += handVelY * bf * 0.35;
-          }
-
-          shape.velX += fx;
-          shape.velY += fy;
-        });
-
-        canvasPhotos.forEach(photo => {
-          if (photo === draggingPhoto) return;
-          if (pushRadius < 5) return;
-          const px = photo.baseX + photo.driftX + photo.momX + photo.w / 2;
-          const py = photo.baseY + photo.driftY + photo.momY + photo.h / 2;
-          const dx = px - smoothHandX;
-          const dy = py - smoothHandY;
-          const dist = Math.hypot(dx, dy);
-          if (dist < 1 || dist > pushRadius) return;
-          const ux = dx / dist, uy = dy / dist;
-
-          const t = 1 - dist / pushRadius;
-          const f = t * t;
-          const push = f * pushStrength * 0.4 * dt;
-          photo.velX += ux * push;
-          photo.velY += uy * push;
-        });
-      }
-
-      /* Apply transforms + reverse drift at viewport+100px boundary */
-      const bounceMargin = 100;
-      shapes.forEach(shape => {
-        const tx = shape.layoutX + shape.momX;
-        const ty = shape.layoutY + shape.momY;
-        const wx = svgR.left + shape.originX * ePpu + tx;
-        const wy = svgR.top  + shape.originY * ePpu + ty;
-
-        if (shape !== draggingShape) {
-          if (wx < -bounceMargin && shape.genDriftSpeedX < 0) {
-            shape.genDriftSpeedX = Math.abs(shape.genDriftSpeedX);
-            shape.velX = Math.abs(shape.velX) * 0.3;
-            shape.momX += 2;
-          } else if (wx > evw + bounceMargin && shape.genDriftSpeedX > 0) {
-            shape.genDriftSpeedX = -Math.abs(shape.genDriftSpeedX);
-            shape.velX = -Math.abs(shape.velX) * 0.3;
-            shape.momX -= 2;
-          }
-          if (wy < -bounceMargin && shape.genDriftSpeedY < 0) {
-            shape.genDriftSpeedY = Math.abs(shape.genDriftSpeedY);
-            shape.velY = Math.abs(shape.velY) * 0.3;
-            shape.momY += 2;
-          } else if (wy > evh + bounceMargin && shape.genDriftSpeedY > 0) {
-            shape.genDriftSpeedY = -Math.abs(shape.genDriftSpeedY);
-            shape.velY = -Math.abs(shape.velY) * 0.3;
-            shape.momY -= 2;
-          }
-        }
-
-        shape.el.style.opacity = '1';
-        shape.el.style.transform = `translate(${tx}px, ${ty}px) scale(${shape.currentScale})`;
-      });
-
-      /* Photos (generator only) */
-      if (isGenerator && genActivated) animatePhotos(dt, t);
-
-      /* Recording */
-      if (isRecording) {
-        renderFrameToCanvas(recCanvas, recCtx);
-        const sec = Math.min(10, Math.floor((performance.now() - recStart) / 1000));
-        recTimerSpan.textContent = `Recording ${sec}s`;
-      }
-
-      requestAnimationFrame(animate);
-    }
-
-    /* ---------- Wave mode animation (existing logic) ---------- */
-    let handScatterReady = false;
-    let smoothHandPresence = 0;
-    let handClosedSince = 0;
-    let handClosedRerolled = false;
-    const HAND_CLOSED_THRESH = 0.15;
-    const HAND_CLOSED_REROLL_MS = 1500;
-
-    function animateWaveMode(dt, t, time) {
       const resting = getRestingZone();
       const expandedZ = getExpandedZone();
       let inExpanded = false;
-      const padGrowK = 0.52, padShrinkK = 0.48;
-      const handDriving = handTrackerActive && handDetected;
 
-      if (handTrackerActive) {
-        if (!handScatterReady) { rollScatterLayout(); handScatterReady = true; }
-        if (handDetected && smoothOpenness < HAND_CLOSED_THRESH) {
-          if (handClosedSince === 0) handClosedSince = time;
-          if (!handClosedRerolled && time - handClosedSince >= HAND_CLOSED_REROLL_MS) {
-            rollScatterLayout();
-            computeScatterOffsets();
-            handClosedRerolled = true;
+      const padGrowK = 0.52;
+      const padShrinkK = 0.48;
+
+      if (mouseActive) {
+          const inResting = pointInRect(mouseX, mouseY, resting);
+          inExpanded = pointInRect(mouseX, mouseY, expandedZ);
+
+          if (wasInExpanded && !inExpanded) {
+            pendingScatterRoll = true;
           }
-        } else {
-          handClosedSince = 0;
-          handClosedRerolled = false;
-        }
-      } else {
-        handScatterReady = false;
-        handClosedSince = 0;
-        handClosedRerolled = false;
-      }
+          if (inExpanded && !wasInExpanded && pendingScatterRoll) {
+            rollScatterLayout();
+            pendingScatterRoll = false;
+          }
 
-      if (mouseActive && !handTrackerActive) {
-        const inResting = pointInRect(mouseX, mouseY, resting);
-        inExpanded = pointInRect(mouseX, mouseY, expandedZ);
-        if (wasInExpanded && !inExpanded) pendingScatterRoll = true;
-        if (inExpanded && !wasInExpanded && pendingScatterRoll) { rollScatterLayout(); pendingScatterRoll = false; }
-        if (inResting) expandedMode = true;
-        else if (!inExpanded) expandedMode = false;
-        const tgt = expandedMode ? 1 : 0;
-        const pk = tgt > padT ? padGrowK : padShrinkK;
-        padT += (tgt - padT) * (1 - Math.pow(1 - pk, dt));
-        wasInResting = inResting;
-        wasInExpanded = inExpanded;
-      } else if (!handTrackerActive) {
+          if (inResting) expandedMode = true;
+          else if (!inExpanded) expandedMode = false;
+
+          const targetPadT = expandedMode ? 1 : 0;
+          const pk = targetPadT > padT ? padGrowK : padShrinkK;
+          const fPad = 1 - Math.pow(1 - pk, dt);
+          padT += (targetPadT - padT) * fPad;
+
+          wasInResting = inResting;
+          wasInExpanded = inExpanded;
+      } else {
         expandedMode = false;
         wasInResting = false;
         wasInExpanded = false;
         pendingScatterRoll = true;
-        padT += (0 - padT) * (1 - Math.pow(1 - 0.48, dt));
+        const fPad = 1 - Math.pow(1 - padShrinkK, dt);
+        padT += (0 - padT) * fPad;
       }
 
-      const near = mouseActive && expandedMode && inExpanded && !handTrackerActive;
+      const near = mouseActive && expandedMode && inExpanded;
+      const t = time * 0.001;
       const tSec = t;
       const parallaxAmp = 82;
-      const { nx, ny } = near ? parallaxNudge(expandedZ) : { nx:0, ny:0 };
+      const { nx, ny } = near ? parallaxNudge(expandedZ) : { nx: 0, ny: 0 };
 
       if (waveVariantBlendT < 1) {
         waveVariantBlendT = Math.min(1, waveVariantBlendT + dt * 0.024);
-        if (waveVariantBlendT >= 1) { waveVariantBlendT = 1; waveVariantFrom = waveVariantTo; }
+        if (waveVariantBlendT >= 1) {
+          waveVariantBlendT = 1;
+          waveVariantFrom = waveVariantTo;
+        }
       }
-      const uBlend = smoothstep01(waveVariantBlendT);
+      const uWaveBlend = smoothstep01(waveVariantBlendT);
 
-      const vw = window.innerWidth, vh = window.innerHeight;
-
-      const presenceTarget = handDriving ? 1 : 0;
-      const presenceK = handDriving ? 0.012 : 0.006;
-      smoothHandPresence += (presenceTarget - smoothHandPresence) * (1 - Math.pow(1 - presenceK, dt));
-
-      const hp = smoothHandPresence;
-      const handNX = hp > 0.001 ? (smoothHandX - vw / 2) / (vw / 2) : 0;
-      const handNY = hp > 0.001 ? (smoothHandY - vh / 2) / (vh / 2) : 0;
-      const handExpand = smoothOpenness * hp;
+      const momSpringK = near ? 0 : 0.022;
+      const momDamp = near ? 1 : 0.88;
 
       shapes.forEach((shape, i) => {
         const idleX = Math.sin(t * shape.idleFreqX + shape.idlePhase) * shape.idleAmp;
         const idleY = Math.sin(t * shape.idleFreqY + shape.idlePhase * 0.7) * shape.idleAmp * 0.7;
-        let targetX, targetY, targetScale;
 
-        if (handTrackerActive && hp > 0.001) {
-          const depthMul = 0.5 + shape.scatterScale * 0.5;
-          const handPX = handNX * 22 * depthMul;
-          const handPY = handNY * 22 * depthMul;
-          const ex = Math.max(0, Math.min(1, handExpand * 1.3 - 0.1));
-          const idleFade = Math.max(0, ex * 2 - 0.2);
-          const spread = 1.6;
-          const htX = shape.scatterX * spread * ex + idleX * idleFade * 0.3 + handPX * ex;
-          const htY = shape.scatterY * spread * ex + idleY * idleFade * 0.3 + handPY * ex;
-          const ssc = shape.scatterScale;
-          const htScale = shape.translateOnly ? 1 : 1 + (ssc - 1) * ex * 1.3;
-          targetX = htX * hp;
-          targetY = htY * hp;
-          targetScale = 1 + (htScale - 1) * hp;
-        } else if (near) {
-          const px = nx * parallaxAmp;
-          const py = ny * parallaxAmp;
+        const px = near ? nx * parallaxAmp : 0;
+        const py = near ? ny * parallaxAmp : 0;
+
+        let targetX;
+        let targetY;
+        let targetScale;
+        if (near) {
           const A = waveDispForVariant(shape, i, waveVariantFrom, tSec);
           const B = waveDispForVariant(shape, i, waveVariantTo, tSec);
-          targetX = A.tx + (B.tx - A.tx) * uBlend + idleX + px;
-          targetY = A.ty + (B.ty - A.ty) * uBlend + idleY + py;
-          targetScale = A.sc + (B.sc - A.sc) * uBlend;
+          const wx = A.tx + (B.tx - A.tx) * uWaveBlend;
+          const wy = A.ty + (B.ty - A.ty) * uWaveBlend;
+          const wsc = A.sc + (B.sc - A.sc) * uWaveBlend;
+          targetX = wx + idleX + px;
+          targetY = wy + idleY + py;
+          targetScale = wsc;
         } else {
-          targetX = 0; targetY = 0; targetScale = 1;
+          targetX = 0;
+          targetY = 0;
+          targetScale = 1;
         }
 
-        const htClosed = 1 - smoothOpenness;
-        const htGone = handTrackerActive && !handDetected;
-        const closedBoost = htGone ? 0 : htClosed * htClosed * 0.08;
-        const entryMul = htGone ? 1 : handPresentT * handPresentT;
-        const baseSpeed = handTrackerActive ? (0.005 + closedBoost * entryMul) : shape.speed;
-        const sp = baseSpeed;
+        const sp = shape.speed;
         const fPos = 1 - Math.pow(1 - sp, dt);
-        const scaleSp = (near || handTrackerActive) ? sp : Math.min(sp * shape.scaleReturnBoost, 0.22);
+        const scaleSp = near
+          ? sp
+          : Math.min(sp * shape.scaleReturnBoost, 0.22);
         const fScale = 1 - Math.pow(1 - scaleSp, dt);
+
         if (shape !== draggingShape) {
           shape.layoutX += (targetX - shape.layoutX) * fPos;
           shape.layoutY += (targetY - shape.layoutY) * fPos;
           shape.currentScale += (targetScale - shape.currentScale) * fScale;
         }
-      });
-    }
-
-    /* ---------- Generator mode animation ---------- */
-    let genParallaxX = 0, genParallaxY = 0;
-    function animateGenerator(dt, t) {
-      const vw = window.innerWidth, vh = window.innerHeight;
-      let targetPX = (mouseX - vw/2) / (vw/2);
-      let targetPY = (mouseY - vh/2) / (vh/2);
-      if (genMouseLeft) { targetPX = 0; targetPY = 0; }
-      const pSpeed = 0.06;
-      const pLerp = 1 - Math.pow(1 - pSpeed, dt);
-      genParallaxX += (targetPX - genParallaxX) * pLerp;
-      genParallaxY += (targetPY - genParallaxY) * pLerp;
-      const mpx = genParallaxX;
-      const mpy = genParallaxY;
-
-      if (!genActivated) {
-        shapes.forEach(shape => {
-          const idleX = Math.sin(t * shape.idleFreqX + shape.idlePhase) * shape.idleAmp * 0.4;
-          const idleY = Math.sin(t * shape.idleFreqY + shape.idlePhase * 0.7) * shape.idleAmp * 0.3;
-          const f = 1 - Math.pow(1 - 0.045, dt);
-          if (shape !== draggingShape) {
-            shape.layoutX += (idleX - shape.layoutX) * f;
-            shape.layoutY += (idleY - shape.layoutY) * f;
-            shape.currentScale += (1 - shape.currentScale) * f;
-          }
-        });
-        return;
-      }
-
-      genExpandProgress = Math.min(1, genExpandProgress + dt * 0.013);
-      const eased = smoothstep01(genExpandProgress);
-      const sp = genExpandProgress < 0.95 ? 0.055 : 0.022;
-      const f = 1 - Math.pow(1 - sp, dt);
-
-      shapes.forEach((shape, i) => {
-        const idleX = Math.sin(t * shape.idleFreqX + shape.idlePhase) * shape.idleAmp * 0.45;
-        const idleY = Math.sin(t * shape.idleFreqY + shape.idlePhase * 0.7) * shape.idleAmp * 0.35;
-
-        shape.genDriftX += shape.genDriftSpeedX * dt;
-        shape.genDriftY += shape.genDriftSpeedY * dt;
-
-        const pBase = 18;
-        const pFactor = shape.scatterScale * pBase;
-        const px = mpx * pFactor;
-        const py = mpy * pFactor;
-
-        const targetX = shape.scatterX * eased + shape.genDriftX + idleX + px;
-        const targetY = shape.scatterY * eased + shape.genDriftY + idleY + py;
-        // Use the full scatterScale range (was halved) so the wider 0.3–2.4
-        // variation actually translates into visible depth on screen.
-        const genScaleExcess = (shape.scatterScale - 1) * 0.85;
-        const targetScale = shape.translateOnly ? 1 : 1 + genScaleExcess * eased;
 
         if (shape !== draggingShape) {
-          shape.layoutX += (targetX - shape.layoutX) * f;
-          shape.layoutY += (targetY - shape.layoutY) * f;
-          shape.currentScale += (targetScale - shape.currentScale) * f;
+          const invM = 1 / shape.mass;
+          shape.velX -= shape.momX * momSpringK * dt * invM;
+          shape.velY -= shape.momY * momSpringK * dt * invM;
+          shape.velX *= momDamp;
+          shape.velY *= momDamp;
+          const fr = frictionForMass(shape.mass, dt);
+          const air = Math.pow(AIR_DRAG, dt);
+          shape.velX *= fr * air;
+          shape.velY *= fr * air;
+          shape.momX += shape.velX * dt;
+          shape.momY += shape.velY * dt;
+          if (
+            Math.abs(shape.momX) < MOM_EPS &&
+            Math.abs(shape.momY) < MOM_EPS &&
+            Math.abs(shape.velX) < VEL_EPS &&
+            Math.abs(shape.velY) < VEL_EPS
+          ) {
+            shape.momX = 0;
+            shape.momY = 0;
+            shape.velX = 0;
+            shape.velY = 0;
+          }
         }
+
+        const tx = shape.layoutX + shape.momX;
+        const ty = shape.layoutY + shape.momY;
+        shape.el.style.opacity = '1';
+        shape.el.style.transform =
+          `translate(${tx}px, ${ty}px) scale(${shape.currentScale})`;
       });
-    }
 
-    /* ---------- Photo animation ---------- */
-    function animatePhotos(dt, t) {
-      const mpx = genParallaxX;
-      const mpy = genParallaxY;
-
-      canvasPhotos.forEach(photo => {
-        if (photo === draggingPhoto) return;
-        photo.driftX += photo.driftSpeedX * dt;
-        photo.driftY += photo.driftSpeedY * dt;
-
-        const pMult = 11;
-        const pFactor = photo.depth * pMult;
-        const px = mpx * pFactor;
-        const py = mpy * pFactor;
-
-        photo.velX *= Math.pow(0.945, dt);
-        photo.velY *= Math.pow(0.945, dt);
-        photo.momX += photo.velX * dt;
-        photo.momY += photo.velY * dt;
-
-        const finalX = photo.baseX + photo.driftX + photo.momX + px;
-        const finalY = photo.baseY + photo.driftY + photo.momY + py;
-
-        const evw = window.innerWidth, evh = window.innerHeight;
-        const bm = 100;
-        if (finalX + photo.w < -bm && photo.driftSpeedX < 0) {
-          photo.driftSpeedX = Math.abs(photo.driftSpeedX);
-          photo.velX = Math.abs(photo.velX) * 0.3;
-        } else if (finalX > evw + bm && photo.driftSpeedX > 0) {
-          photo.driftSpeedX = -Math.abs(photo.driftSpeedX);
-          photo.velX = -Math.abs(photo.velX) * 0.3;
-        }
-        if (finalY + photo.h < -bm && photo.driftSpeedY < 0) {
-          photo.driftSpeedY = Math.abs(photo.driftSpeedY);
-          photo.velY = Math.abs(photo.velY) * 0.3;
-        } else if (finalY > evh + bm && photo.driftSpeedY > 0) {
-          photo.driftSpeedY = -Math.abs(photo.driftSpeedY);
-          photo.velY = -Math.abs(photo.velY) * 0.3;
-        }
-
-        photo.el.style.left  = finalX + 'px';
-        photo.el.style.top   = finalY + 'px';
-      });
+      requestAnimationFrame(animate);
     }
 
     requestAnimationFrame(animate);
-
-    /* =========================================================
-       DRAG: SVG SHAPES (existing)
-       ========================================================= */
-    function shapeFromEventTarget(target) {
-      if (!target) return null;
-      if (!logoSvg.contains(target)) return null;
-      const path = target.closest && target.closest('path');
-      if (!path || !logoSvg.contains(path)) return null;
-      return shapes.find(s => s.el === path) || null;
-    }
 
     function attachDragEndGuards() {
       window.addEventListener('pointerup', onWindowPointerEnd, true);
       window.addEventListener('pointercancel', onWindowPointerEnd, true);
       window.addEventListener('pointermove', onDragPointerMove, true);
       window.addEventListener('blur', onWindowBlurEnd);
-      document.addEventListener('visibilitychange', onVisEnd);
+      document.addEventListener('visibilitychange', onVisibilityChangeEnd);
     }
+
     function detachDragEndGuards() {
       window.removeEventListener('pointerup', onWindowPointerEnd, true);
       window.removeEventListener('pointercancel', onWindowPointerEnd, true);
       window.removeEventListener('pointermove', onDragPointerMove, true);
       window.removeEventListener('blur', onWindowBlurEnd);
-      document.removeEventListener('visibilitychange', onVisEnd);
+      document.removeEventListener('visibilitychange', onVisibilityChangeEnd);
     }
-    function onVisEnd() { if (document.visibilityState==='hidden' && draggingShape) endDrag(null); }
-    function onWindowPointerEnd(e) { if (!draggingShape || e.pointerId!==dragPointerId) return; endDrag(e); }
-    function onWindowBlurEnd() { if (draggingShape) endDrag(null); }
 
-    let shapeDragMoved = false;
+    function onVisibilityChangeEnd() {
+      if (document.visibilityState === 'hidden' && draggingShape) endDrag(null);
+    }
+
+    function onWindowPointerEnd(e) {
+      if (!draggingShape || e.pointerId !== dragPointerId) return;
+      endDrag(e);
+    }
+
+    function onWindowBlurEnd() {
+      if (draggingShape) endDrag(null);
+    }
+
     function onPointerDown(e) {
       if (e.button !== 0) return;
       const s = shapeFromEventTarget(e.target);
       if (!s) return;
-      if (isGenerator && !genActivated) return;
       e.preventDefault();
       draggingShape = s;
       dragPointerId = e.pointerId;
-      shapeDragMoved = false;
       s.el.classList.add('dragging');
-      dragLastClientX = e.clientX; dragLastClientY = e.clientY;
+      dragLastClientX = e.clientX;
+      dragLastClientY = e.clientY;
       dragLastTime = performance.now();
-      s.velX = 0; s.velY = 0;
+      s.velX = 0;
+      s.velY = 0;
       attachDragEndGuards();
-      try { s.el.setPointerCapture(e.pointerId); } catch(_){}
-      // Raise to top of the SVG so the dragged shape paints above its peers.
+      try {
+        s.el.setPointerCapture(e.pointerId);
+      } catch (_) {}
       logoSvg.appendChild(s.el);
     }
 
     function onDragPointerMove(e) {
-      if (!draggingShape || e.pointerId!==dragPointerId) return;
-      shapeDragMoved = true;
+      if (!draggingShape || e.pointerId !== dragPointerId) return;
       const now = performance.now();
-      const dtM = Math.max(1, now - dragLastTime);
-      const dx = e.clientX - dragLastClientX, dy = e.clientY - dragLastClientY;
+      const dtMove = Math.max(1, now - dragLastTime);
+      const dx = e.clientX - dragLastClientX;
+      const dy = e.clientY - dragLastClientY;
       draggingShape.momX += dx;
       draggingShape.momY += dy;
-      draggingShape.velX = (dx/dtM)*16.667;
-      draggingShape.velY = (dy/dtM)*16.667;
-      dragLastClientX = e.clientX; dragLastClientY = e.clientY;
+      draggingShape.velX = (dx / dtMove) * 16.667;
+      draggingShape.velY = (dy / dtMove) * 16.667;
+      dragLastClientX = e.clientX;
+      dragLastClientY = e.clientY;
       dragLastTime = now;
     }
 
@@ -1637,869 +713,56 @@
       const i = pathOrder.indexOf(el);
       if (i < 0) return;
       const next = pathOrder[i + 1];
-      if (next && next.parentElement === logoSvg) {
-        logoSvg.insertBefore(el, next);
-      } else {
-        logoSvg.appendChild(el);
-      }
+      if (next) logoSvg.insertBefore(el, next);
+      else logoSvg.appendChild(el);
     }
 
     function endDrag(e) {
-      const s = draggingShape; if (!s) return;
+      const s = draggingShape;
+      if (!s) return;
       const pid = dragPointerId;
-      draggingShape = null; dragPointerId = null;
+      draggingShape = null;
+      dragPointerId = null;
       detachDragEndGuards();
 
-      if (isGenerator && genActivated) {
-        // Generator: anchor the shape exactly where dropped (no spring-back).
-        // Absorb drag offset (momX/momY) into both layoutX/Y and the persistent
-        // genDrift offset so the lerp target equals the current display position.
-        const dispX = s.momX, dispY = s.momY;
-        s.layoutX += dispX;
-        s.layoutY += dispY;
-        s.genDriftX += dispX;
-        s.genDriftY += dispY;
-        s.momX = 0; s.momY = 0;
-        s.velX = 0; s.velY = 0;
-        s.genDriftSpeedX = 0;
-        s.genDriftSpeedY = 0;
-        // Flag this shape as user-placed so subsequent crop changes won't
-        // re-shuffle its inside/outside-crop membership.
-        if (shapeDragMoved) s.userDropped = true;
-      } else {
-        const fling = 0.78 / Math.sqrt(s.mass);
-        s.velX *= fling; s.velY *= fling;
-      }
-
+      const fling = 0.78 / Math.sqrt(s.mass);
+      s.velX *= fling;
+      s.velY *= fling;
       s.el.classList.remove('dragging');
       restorePathDomOrder(s.el);
-      if (pid!=null) { try { if(s.el.hasPointerCapture(pid)) s.el.releasePointerCapture(pid); } catch(_){} }
+      if (pid != null) {
+        try {
+          if (s.el.hasPointerCapture(pid)) s.el.releasePointerCapture(pid);
+        } catch (_) {}
+      }
     }
 
     logoSvg.addEventListener('pointerdown', onPointerDown);
-    logoSvg.addEventListener('pointerup', e => { if(draggingShape && e.pointerId===dragPointerId) endDrag(e); });
-    logoSvg.addEventListener('pointercancel', e => { if(draggingShape && e.pointerId===dragPointerId) endDrag(e); });
-
-    /* =========================================================
-       DRAG: PHOTOS
-       ========================================================= */
-    let dragPhotoLastX=0, dragPhotoLastY=0, dragPhotoLastTime=0, dragPhotoPid=null;
-
-    document.addEventListener('pointerdown', e => {
-      if (!e.target.classList.contains('canvas-photo')) return;
-      const photo = canvasPhotos.find(p => p.el === e.target);
-      if (!photo) return;
-      e.preventDefault();
-      // Absorb any drift / momentum into the base position so that during the
-      // drag the displayed position simply equals (baseX + parallax) and we
-      // can move it by the exact cursor delta.
-      photo.baseX += photo.driftX + photo.momX;
-      photo.baseY += photo.driftY + photo.momY;
-      photo.driftX = 0; photo.driftY = 0;
-      photo.momX = 0;  photo.momY = 0;
-      photo.velX = 0;  photo.velY = 0;
-      draggingPhoto = photo;
-      dragPhotoPid  = e.pointerId;
-      photo.el.classList.add('dragging');
-      dragPhotoLastX = e.clientX; dragPhotoLastY = e.clientY;
-      dragPhotoLastTime = performance.now();
-      try { photo.el.setPointerCapture(e.pointerId); } catch(_){}
+    logoSvg.addEventListener('pointerup', e => {
+      if (draggingShape && e.pointerId === dragPointerId) endDrag(e);
+    });
+    logoSvg.addEventListener('pointercancel', e => {
+      if (draggingShape && e.pointerId === dragPointerId) endDrag(e);
     });
 
-    document.addEventListener('pointermove', e => {
-      if (!draggingPhoto || e.pointerId!==dragPhotoPid) return;
-      const now = performance.now();
-      const dtM = Math.max(1, now - dragPhotoLastTime);
-      const dx = e.clientX - dragPhotoLastX, dy = e.clientY - dragPhotoLastY;
-      draggingPhoto.baseX += dx;
-      draggingPhoto.baseY += dy;
-      draggingPhoto.velX = (dx/dtM)*16.667;
-      draggingPhoto.velY = (dy/dtM)*16.667;
-
-      // Directly write the position so the image follows the cursor 1:1
-      // (animatePhotos skips the dragging photo, so the DOM would otherwise
-      // never be updated until pointerup).
-      const pFactor = draggingPhoto.depth * 11;
-      const px = genParallaxX * pFactor;
-      const py = genParallaxY * pFactor;
-      draggingPhoto.el.style.left = (draggingPhoto.baseX + px) + 'px';
-      draggingPhoto.el.style.top  = (draggingPhoto.baseY + py) + 'px';
-
-      dragPhotoLastX = e.clientX; dragPhotoLastY = e.clientY;
-      dragPhotoLastTime = now;
-    });
-
-    document.addEventListener('pointerup', e => {
-      if (!draggingPhoto || e.pointerId!==dragPhotoPid) return;
-      // Stop where dropped — kill residual velocity so the photo doesn't drift.
-      draggingPhoto.velX = 0;
-      draggingPhoto.velY = 0;
-      draggingPhoto.driftSpeedX = 0;
-      draggingPhoto.driftSpeedY = 0;
-      draggingPhoto.el.classList.remove('dragging');
-      draggingPhoto = null; dragPhotoPid = null;
-    });
-
-    /* =========================================================
-       TAB / PILL UI
-       ========================================================= */
-    const MOTION_LABELS = ['Still','Swell','Tide','River','Storm','Ripple'];
-    let currentMotionIdx = 0;
-    let currentWaveId = HAND_TRACKER_WAVE_ID;
-
-    handTrackerBtn.addEventListener('click', () => {
-      if (handTrackerActive) {
-        stopHandTracker();
-        handTrackerBtn.classList.remove('active');
-        handTrackerBtn.textContent = 'Hover';
-        motionCycleBtn.style.display = '';
-        currentWaveId = -1;
-      } else {
-        startHandTracker();
-        currentWaveId = HAND_TRACKER_WAVE_ID;
-        handTrackerBtn.textContent = 'Hand Tracker';
-        motionCycleBtn.style.display = 'none';
-      }
-    });
-
-    motionCycleBtn.addEventListener('click', () => {
-      currentMotionIdx = (currentMotionIdx + 1) % MOTION_LABELS.length;
-      motionCycleBtn.textContent = MOTION_LABELS[currentMotionIdx];
-      const prevV = waveVariantTo;
-      waveVariantFrom = prevV;
-      waveVariantTo = currentMotionIdx;
-      waveVariantBlendT = 0;
-    });
-
-    tabInteractive.addEventListener('click', () => {
-      if (!isGenerator && tabInteractive.classList.contains('active')) return;
-      tabInteractive.classList.add('active');
-      tabGenerator.classList.remove('active');
-      interactiveControls.classList.add('visible');
-      if (isGenerator) exitGenerator();
-    });
-
-    tabGenerator.addEventListener('click', () => {
-      if (isGenerator && tabGenerator.classList.contains('active')) return;
-      if (handTrackerActive) stopHandTracker();
-      tabGenerator.classList.add('active');
-      tabInteractive.classList.remove('active');
-      interactiveControls.classList.remove('visible');
-      enterGenerator();
-    });
-
-    /* =========================================================
-       GENERATOR MODE
-       ========================================================= */
-    function enterGenerator() {
-      isGenerator = true;
-      genActivated = false;
-      genExpandProgress = 0;
-      logoSvg.classList.add('gen-idle');
-      document.body.classList.add('generator-on');
-      genControls.classList.add('visible');
-      expandedMode = false;
-      padT = 0;
-      fitGenContentToCrop();
-    }
-
-    function exitGenerator() {
-      isGenerator = false;
-      genActivated = false;
-      genExpandProgress = 0;
-      logoSvg.classList.remove('gen-idle');
-      logoSvg.classList.remove('gen-active');
-      document.body.classList.remove('generator-on');
-      genControls.classList.remove('visible');
-      textInputWrap.classList.remove('visible', 'expanding');
-      textEditable.style.transform = '';
-      textEditable.style.opacity = '';
-      textEditable.style.color = '';
-      textEditable.textContent = '';
-      cropMode = 0;
-      cropBtn.textContent = 'Crop: Screensize';
-      cropOverlay.style.display = 'none';
-      logoCheck.checked = false;
-      logoWatermark.classList.remove('visible');
-      textEditable.style.maxWidth = '';
-      textEditable.style.fontSize = '';
-
-      canvasTexts.forEach(t => t.el.remove());
-      canvasTexts.length = 0;
-      canvasPhotos.forEach(p => p.el.remove());
-      canvasPhotos.length = 0;
-
-      shapes.forEach(s => {
-        s.genDriftX = 0; s.genDriftY = 0;
-        s.genDriftSpeedX = 0; s.genDriftSpeedY = 0;
-        s.userDropped = false;
-      });
-      // Clear any "outside crop" assignments so interactive mode uses the
-      // standard scatter targets.
-      scatterPlan.forEach(p => { p.outsideCrop = false; });
-      computeScatterOffsets();
-    }
-
-    function activateGenerator() {
-      genActivated = true;
-      genExpandProgress = 0;
-      logoSvg.classList.remove('gen-idle');
-      logoSvg.classList.add('gen-active');
-
-      // Fresh activation: clear any prior user-drop flags so the layout can
-      // freely choose which shapes sit inside/outside the crop.
-      shapes.forEach(s => { s.userDropped = false; });
-
-      rollScatterLayout();
-      computeScatterOffsets();
-
-      shapes.forEach((shape, i) => {
-        shape.genDriftX = 0;
-        shape.genDriftY = 0;
-        if (scatterPlan[i] && scatterPlan[i].outsideCrop) {
-          // Hold outside-crop shapes still — they're decoration in the dimmed
-          // border, not active drifters.
-          shape.genDriftSpeedX = 0;
-          shape.genDriftSpeedY = 0;
-        } else {
-          const depth = shape.scatterScale;
-          shape.genDriftSpeedX = (0.022 + depth * 0.0132) * (Math.random() > 0.5 ? 1 : -1);
-          shape.genDriftSpeedY = (Math.random() - 0.5) * 0.0088;
-        }
-      });
-
-      setTimeout(() => {
-        textInputWrap.classList.add('visible');
-        textEditable.focus();
-      }, 500);
-    }
-
-    /* Click to activate (only in gen-idle state) – use full logo bounding box */
-    let clickStartX2 = 0, clickStartY2 = 0;
-    container.addEventListener('pointerdown', e => { clickStartX2 = e.clientX; clickStartY2 = e.clientY; });
-    container.addEventListener('click', e => {
-      if (!isGenerator || genActivated) return;
-      if (Math.hypot(e.clientX - clickStartX2, e.clientY - clickStartY2) > 8) return;
-      const r = logoSvg.getBoundingClientRect();
-      const padX = Math.max(60, r.width * 0.08);
-      const padY = Math.max(60, r.height * 0.5);
-      if (e.clientX >= r.left - padX && e.clientX <= r.right + padX &&
-          e.clientY >= r.top - padY  && e.clientY <= r.bottom + padY) {
-        activateGenerator();
-      }
-    });
-
-    /* =========================================================
-       TEXT INPUT
-       ========================================================= */
-    textEditable.addEventListener('keydown', e => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        const text = textEditable.innerText.trim();
-        if (!text) return;
-
-        const div = document.createElement('div');
-        div.className = 'canvas-text';
-        div.textContent = text;
-        const c = getCropBounds();
-        const maxTW = Math.min(700, c.w * 0.85);
-        div.style.maxWidth = maxTW + 'px';
-        document.body.appendChild(div);
-        canvasTexts.push({ el: div, text, x: c.x + c.w/2, y: c.y + c.h/2 });
-
-        textEditable.style.color = 'transparent';
-        textInputWrap.classList.add('expanding');
-
-        setTimeout(() => {
-          textInputWrap.classList.remove('visible', 'expanding');
-          textEditable.style.transform = '';
-          textEditable.style.opacity = '';
-          textEditable.style.color = '';
-          textEditable.textContent = '';
-        }, 800);
-      }
-    });
-
-    document.addEventListener('click', e => {
-      const textEl = e.target.closest('.canvas-text');
-      if (!textEl) return;
-      const idx = canvasTexts.findIndex(t => t.el === textEl);
-      if (idx < 0) return;
-
-      textEditable.textContent = canvasTexts[idx].text;
-      textEl.remove();
-      canvasTexts.splice(idx, 1);
-
-      textInputWrap.classList.remove('expanding');
-      textEditable.style.transform = '';
-      textEditable.style.opacity = '';
-      textEditable.style.color = '';
-      textInputWrap.classList.add('visible');
-
-      setTimeout(() => {
-        textEditable.focus();
-        const sel = window.getSelection();
-        sel.selectAllChildren(textEditable);
-        sel.collapseToEnd();
-      }, 60);
-    });
-
-    /* =========================================================
-       LOGO WATERMARK
-       ========================================================= */
-    logoCheck.addEventListener('change', () => {
-      logoWatermark.classList.toggle('visible', logoCheck.checked);
-      if (logoCheck.checked) positionWatermark();
-    });
-
-    /* =========================================================
-       PHOTO UPLOAD
-       ========================================================= */
-    uploadBtn.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', e => {
-      Array.from(e.target.files).forEach(addPhoto);
-      fileInput.value = '';
-    });
-
-    function addPhoto(file) {
-      const reader = new FileReader();
-      reader.onload = ev => {
-        const img = new Image();
-        img.onload = () => {
-          // Cap initial size so the photo always fits the active crop
-          const c = getCropBounds();
-          const cropMin = Math.min(c.w, c.h);
-          const sizeBase = 120 + Math.random() * 120;
-          const longEdge = Math.min(sizeBase, cropMin * 0.4);
-          let w, h;
-          if (img.width >= img.height) { w = longEdge; h = longEdge * (img.height / img.width); }
-          else { h = longEdge; w = longEdge * (img.width / img.height); }
-
-          // Place within the active crop region (allow slight overflow)
-          const margin = -40;
-          let x, y;
-          const zone = Math.random();
-          if (zone < 0.3) {
-            x = c.x + margin + Math.random() * (c.w * 0.25);
-            y = c.y + margin + Math.random() * (c.h - margin * 2);
-          } else if (zone < 0.6) {
-            x = c.x + c.w * 0.75 - margin + Math.random() * (c.w * 0.25);
-            y = c.y + margin + Math.random() * (c.h - margin * 2);
-          } else if (zone < 0.75) {
-            x = c.x + Math.random() * c.w;
-            y = c.y + margin + Math.random() * (c.h * 0.2);
-          } else if (zone < 0.9) {
-            x = c.x + Math.random() * c.w;
-            y = c.y + c.h * 0.75 + Math.random() * (c.h * 0.25);
-          } else {
-            x = c.x + margin + Math.random() * (c.w - margin * 2);
-            y = c.y + margin + Math.random() * (c.h - margin * 2);
-          }
-
-          const depth = 0.6 + Math.random() * 2.4;
-
-          const el = document.createElement('img');
-          el.src = ev.target.result;
-          el.className = 'canvas-photo';
-          el.style.width  = w + 'px';
-          el.style.height = h + 'px';
-          el.style.left   = x + 'px';
-          el.style.top    = y + 'px';
-          el.style.opacity = '0';
-          el.draggable = false;
-          canvasLayer.appendChild(el);
-          requestAnimationFrame(() => { el.style.opacity = '1'; });
-
-          canvasPhotos.push({
-            img, el, w, h,
-            baseX: x, baseY: y,
-            driftX: 0, driftY: 0,
-            driftSpeedX: 0,
-            driftSpeedY: 0,
-            momX: 0, momY: 0, velX: 0, velY: 0,
-            depth, opacity: 1,
-          });
-        };
-        img.src = ev.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-
-    /* =========================================================
-       CROP
-       ========================================================= */
-    cropBtn.addEventListener('click', () => {
-      cropMode = (cropMode + 1) % CROP_MODES.length;
-      cropBtn.textContent = 'Crop: ' + CROP_MODES[cropMode].label;
-      updateCropOverlay();
-      fitGenContentToCrop();
-      // Re-balance how many shapes sit inside vs. outside the new crop so
-      // smaller crops don't feel cluttered. User-dropped shapes are
-      // preserved by pickOutsideCropMembership.
-      pickOutsideCropMembership({ resetAll: false });
-      // Refresh drift speeds: shapes that were just moved outside should
-      // hold still, and any shape that just came back inside should drift.
-      refreshGenDriftSpeeds();
-      fitShapesToCrop();
-      fitPhotosToCrop();
-    });
-
-    function refreshGenDriftSpeeds() {
-      if (!isGenerator || !genActivated) return;
-      shapes.forEach((shape, i) => {
-        if (shape.userDropped) return;
-        const p = scatterPlan[i];
-        if (p && p.outsideCrop) {
-          shape.genDriftSpeedX = 0;
-          shape.genDriftSpeedY = 0;
-        } else if (shape.genDriftSpeedX === 0 && shape.genDriftSpeedY === 0) {
-          const depth = shape.scatterScale;
-          shape.genDriftSpeedX = (0.022 + depth * 0.0132) * (Math.random() > 0.5 ? 1 : -1);
-          shape.genDriftSpeedY = (Math.random() - 0.5) * 0.0088;
-        }
-      });
-    }
-
-    function getCropBounds() {
-      const vw = window.innerWidth, vh = window.innerHeight;
-      if (cropMode === 0) return { x:0, y:0, w:vw, h:vh, outW: Math.round(Math.min(vw*devicePixelRatio,1920)), outH: Math.round(Math.min(vh*devicePixelRatio,1920*vh/vw)) };
-      const cm = CROP_MODES[cropMode];
-      let cw, ch;
-      if (vw/vh > cm.ar) { ch = vh * 0.92; cw = ch * cm.ar; }
-      else { cw = vw * 0.92; ch = cw / cm.ar; }
-      return { x: (vw-cw)/2, y: (vh-ch)/2, w: cw, h: ch, outW: cm.outW, outH: cm.outH };
-    }
-
-    function updateCropOverlay() {
-      if (cropMode === 0) { cropOverlay.style.display = 'none'; positionWatermark(); return; }
-      const c = getCropBounds();
-      cropOverlay.style.display = 'block';
-      cropOverlay.style.left   = c.x + 'px';
-      cropOverlay.style.top    = c.y + 'px';
-      cropOverlay.style.width  = c.w + 'px';
-      cropOverlay.style.height = c.h + 'px';
-      positionWatermark();
-    }
-
-    function positionWatermark() {
-      const c = getCropBounds();
-      const logoH = 220 * (155 / 1046);
-      const margin = 20;
-      logoWatermark.style.left = (c.x + c.w / 2) + 'px';
-      logoWatermark.style.bottom = (window.innerHeight - (c.y + c.h) + margin) + 'px';
-    }
-
-    function fitGenContentToCrop() {
-      if (!isGenerator) {
-        textEditable.style.maxWidth = '';
-        textEditable.style.fontSize = '';
-        return;
-      }
-      const c = getCropBounds();
-      // Keep font size constant at the design value (38px). Only narrow the
-      // text's max-width so the line wraps once the crop edge gets close.
-      // A bit of edge padding (~0.86) prevents text from kissing the crop.
-      const maxTextW = Math.min(700, Math.max(160, c.w * 0.86));
-
-      textEditable.style.fontSize = '';
-      textEditable.style.maxWidth = maxTextW + 'px';
-
-      canvasTexts.forEach(ti => {
-        ti.el.style.maxWidth = maxTextW + 'px';
-        ti.el.style.fontSize = '';
-        ti.x = c.x + c.w / 2;
-        ti.y = c.y + c.h / 2;
-      });
-    }
-
-    function fitPhotosToCrop() {
-      if (!isGenerator) return;
-      const c = getCropBounds();
-      const cropMin = Math.min(c.w, c.h);
-      const maxLong = Math.max(80, cropMin * 0.45);
-      const overflow = 40;
-      canvasPhotos.forEach(photo => {
-        // Resize slightly if the photo is too large for the crop
-        const longEdge = Math.max(photo.w, photo.h);
-        if (longEdge > maxLong) {
-          const k = maxLong / longEdge;
-          photo.w *= k;
-          photo.h *= k;
-          photo.el.style.width  = photo.w + 'px';
-          photo.el.style.height = photo.h + 'px';
-        }
-        // Pull photos back into the crop region (allow a small overflow)
-        const minX = c.x - overflow;
-        const maxX = c.x + c.w - photo.w + overflow;
-        const minY = c.y - overflow;
-        const maxY = c.y + c.h - photo.h + overflow;
-        photo.baseX = Math.max(minX, Math.min(maxX, photo.baseX));
-        photo.baseY = Math.max(minY, Math.min(maxY, photo.baseY));
-      });
-    }
-
-    function fitShapesToCrop() {
-      if (!isGenerator) return;
-      const c = getCropBounds();
-      const svgR = logoSvg.getBoundingClientRect();
-      const ePpu = svgR.width / LOGO_VB_W;
-      shapes.forEach((s, i) => {
-        // Outside-crop shapes are intentionally beyond the crop bounds —
-        // don't pull them in.
-        if (scatterPlan[i] && scatterPlan[i].outsideCrop) return;
-        const homePxX = svgR.left + s.originX * ePpu;
-        const homePxY = svgR.top  + s.originY * ePpu;
-        const tx = homePxX + s.scatterX + s.genDriftX;
-        const ty = homePxY + s.scatterY + s.genDriftY;
-        const clampedX = Math.max(c.x, Math.min(c.x + c.w, tx));
-        const clampedY = Math.max(c.y, Math.min(c.y + c.h, ty));
-        s.genDriftX += (clampedX - tx);
-        s.genDriftY += (clampedY - ty);
-      });
-    }
-
-    /* =========================================================
-       CANVAS RENDERING (for download / recording)
-       ========================================================= */
-    function drawBackground(ctx, vw, vh) {
-      const svgAR = 1920/1080, vpAR = vw/vh;
-      let sc, ox, oy;
-      if (vpAR > svgAR) { sc = vw/1920; ox=0; oy=(vh-1080*sc)/2; }
-      else { sc = vh/1080; ox=(vw-1920*sc)/2; oy=0; }
-      const grad = ctx.createLinearGradient(ox+209.766*sc, oy+1290.23*sc, ox+1710.23*sc, oy+(-210.234)*sc);
-      grad.addColorStop(0, '#001D32');
-      grad.addColorStop(0.1, '#001B37');
-      grad.addColorStop(0.24, '#031848');
-      grad.addColorStop(0.39, '#071263');
-      grad.addColorStop(0.55, '#0D0A88');
-      grad.addColorStop(0.61, '#100798');
-      grad.addColorStop(0.99, '#1070CF');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, vw, vh);
-    }
-
-    function drawWrappedText(ctx, text, cx, cy, maxW, lh) {
-      if (lh == null) lh = 46;
-      const words = text.split(' ');
-      const lines = []; let cur = '';
-      words.forEach(w => {
-        const test = cur ? cur + ' ' + w : w;
-        if (ctx.measureText(test).width > maxW && cur) { lines.push(cur); cur = w; }
-        else cur = test;
-      });
-      if (cur) lines.push(cur);
-      const startY = cy - (lines.length * lh) / 2 + lh / 2;
-      lines.forEach((l, i) => ctx.fillText(l, cx, startY + i * lh));
-    }
-
-    function renderFrameToCanvas(canvas, ctx) {
-      const cw = canvas.width, ch = canvas.height;
-      const crop = getCropBounds();
-      const sx = cw / crop.w, sy = ch / crop.h;
-      const vw = window.innerWidth, vh = window.innerHeight;
-
-      ctx.clearRect(0, 0, cw, ch);
-      ctx.save();
-      ctx.scale(sx, sy);
-      ctx.translate(-crop.x, -crop.y);
-
-      drawBackground(ctx, vw, vh);
-
-      const svgRect = logoSvg.getBoundingClientRect();
-      const ppu = svgRect.width / LOGO_VB_W;
-
-      const drawShape = (shape) => {
-        const tx = shape.layoutX + shape.momX;
-        const ty = shape.layoutY + shape.momY;
-        const sc = shape.currentScale;
-        const ocx = svgRect.left + shape.originX * ppu;
-        const ocy = svgRect.top  + shape.originY * ppu;
-        ctx.save();
-        ctx.translate(ocx + tx, ocy + ty);
-        ctx.scale(sc, sc);
-        ctx.translate(-ocx, -ocy);
-        ctx.translate(svgRect.left, svgRect.top);
-        ctx.scale(ppu, ppu);
-        ctx.fill(shape.path2d);
-        ctx.restore();
-      };
-
-      ctx.fillStyle = '#DBD8D2';
-
-      // Shapes underneath, in their original draw order
-      pathOrder.forEach(el => {
-        const shape = shapes.find(s => s.el === el);
-        if (shape) drawShape(shape);
-      });
-
-      // Photos always render above shapes, mirroring the on-screen layering
-      canvasPhotos.forEach(photo => {
-        const fx = photo.baseX + photo.driftX + photo.momX;
-        const fy = photo.baseY + photo.driftY + photo.momY;
-        ctx.drawImage(photo.img, fx, fy, photo.w, photo.h);
-      });
-
-      if (canvasTexts.length) {
-        // Match fitGenContentToCrop(): font size stays constant; the wrap
-        // width follows the crop so lines break instead of overflowing.
-        const fSize = 38;
-        const lh = 46;
-        const maxTW = Math.min(700, Math.max(160, crop.w * 0.86));
-        ctx.font = `${fSize}px "Die Grotesk", sans-serif`;
-        ctx.fillStyle = '#DBD8D2';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        canvasTexts.forEach(ti => drawWrappedText(ctx, ti.text, ti.x, ti.y, maxTW, lh));
-      }
-
-      if (logoCheck.checked && logoWatermarkImg.complete) {
-        const lw2 = 220, lh2 = lw2 * (155/1046);
-        const cb = getCropBounds();
-        const lx = cb.x + cb.w / 2 - lw2 / 2;
-        const ly = cb.y + cb.h - lh2 - 20;
-        ctx.drawImage(logoWatermarkImg, lx, ly, lw2, lh2);
-      }
-
-      ctx.restore();
-    }
-
-    /* =========================================================
-       DOWNLOAD JPEG
-       ========================================================= */
-    dlJpegBtn.addEventListener('click', async () => {
-      await document.fonts.ready;
-      const crop = getCropBounds();
-      const c = document.createElement('canvas');
-      c.width = crop.outW; c.height = crop.outH;
-      renderFrameToCanvas(c, c.getContext('2d'));
-      c.toBlob(blob => {
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'tauranga.jpg';
-        a.click();
-        URL.revokeObjectURL(a.href);
-      }, 'image/jpeg', 0.92);
-    });
-
-    /* =========================================================
-       DOWNLOAD MP4 (video recording)
-       ========================================================= */
-    dlMp4Btn.addEventListener('click', () => {
-      if (isRecording) return;
-      const crop = getCropBounds();
-      recCanvas = document.createElement('canvas');
-      recCanvas.width = crop.outW; recCanvas.height = crop.outH;
-      recCtx = recCanvas.getContext('2d');
-
-      const stream = recCanvas.captureStream(30);
-      let mime = 'video/webm;codecs=vp9';
-      if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/webm';
-      if (!MediaRecorder.isTypeSupported(mime) && MediaRecorder.isTypeSupported('video/mp4')) mime = 'video/mp4';
-
-      mediaRecorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 6000000 });
-      recChunks = [];
-      mediaRecorder.ondataavailable = e => { if (e.data.size) recChunks.push(e.data); };
-      mediaRecorder.onstop = () => {
-        const ext = mime.includes('mp4') ? 'mp4' : 'webm';
-        const blob = new Blob(recChunks, { type: mime });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `tauranga.${ext}`;
-        a.click();
-        URL.revokeObjectURL(a.href);
-        isRecording = false;
-        recIndicator.classList.remove('visible');
-        dlMp4Btn.textContent = 'Download MP4';
-        dlMp4Btn.disabled = false;
-        uiPanel.style.transition = 'opacity 0.4s';
-        uiPanel.style.opacity = '1';
-      };
-
-      mediaRecorder.start(200);
-      isRecording = true;
-      recStart = performance.now();
-      recIndicator.classList.add('visible');
-      dlMp4Btn.textContent = 'Recording…';
-      dlMp4Btn.disabled = true;
-      uiPanel.style.transition = 'opacity 0.4s';
-      uiPanel.style.opacity = '0.35';
-
-      setTimeout(() => { if (mediaRecorder.state === 'recording') mediaRecorder.stop(); }, 10200);
-    });
-
-    /* =========================================================
-       HAND TRACKER (MediaPipe Hands)
-       ========================================================= */
-    let handTrackerActive = false;
-    let handCamera = null;
-    let mpHands = null;
-    let smoothHandX = window.innerWidth / 2;
-    let smoothHandY = window.innerHeight / 2;
-    let prevHandX = smoothHandX, prevHandY = smoothHandY;
-    let handVelX = 0, handVelY = 0;
-    let handOpenness = 0.5;
-    const HAND_SMOOTH_K = 0.08;
-    const FINGER_SMOOTH_K = 0.2;
-    const smoothFingers = Array.from({length: 5}, () => ({x: 0, y: 0, init: false}));
-    const smoothPalmDot = {x: 0, y: 0, init: false};
-    let smoothOpenness = 0.5;
-
-    async function startHandTracker() {
-      if (handTrackerActive) return;
-
-      handTrackerBtn.classList.add('loading');
-      handTrackerBtn.textContent = 'Loading…';
-
-      try {
-        if (!mpHands) {
-          mpHands = new Hands({
-            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
-          });
-          mpHands.setOptions({
-            maxNumHands: 1,
-            modelComplexity: 0,
-            minDetectionConfidence: 0.6,
-            minTrackingConfidence: 0.5
-          });
-          mpHands.onResults(onHandResults);
-        }
-
-        handCamera = new Camera(handVideo, {
-          onFrame: async () => {
-            if (handTrackerActive) await mpHands.send({ image: handVideo });
-          },
-          width: 320,
-          height: 240
-        });
-        await handCamera.start();
-
-        handTrackerActive = true;
-        if (!webcamHidden) webcamPreview.classList.add('visible');
-        else webcamShowBtn.classList.add('visible');
-        handTrackerBtn.classList.remove('loading');
-        handTrackerBtn.classList.add('active');
-        handTrackerBtn.textContent = 'Hand Tracker';
-      } catch (err) {
-        console.error('Hand tracker error:', err);
-        handTrackerBtn.classList.remove('loading', 'active');
-        handTrackerBtn.textContent = 'Hand Tracker';
-      }
-    }
-
-    function onHandResults(results) {
-      if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-        const landmarks = results.multiHandLandmarks[0];
-        const wrist = landmarks[0];
-        const lm = landmarks[9];
-        const vw = window.innerWidth, vh = window.innerHeight;
-        const rawX = (1 - lm.x) * vw;
-        const rawY = lm.y * vh;
-
-        if (!handDetected) {
-          smoothHandX = rawX;
-          smoothHandY = rawY;
-          prevHandX = rawX;
-          prevHandY = rawY;
-          handVelX = 0;
-          handVelY = 0;
-          handOpenness = 0;
-          smoothOpenness = 0;
-        }
-
-        prevHandX = smoothHandX; prevHandY = smoothHandY;
-        smoothHandX += (rawX - smoothHandX) * HAND_SMOOTH_K;
-        smoothHandY += (rawY - smoothHandY) * HAND_SMOOTH_K;
-        const rawVX = smoothHandX - prevHandX;
-        const rawVY = smoothHandY - prevHandY;
-        handVelX += (rawVX - handVelX) * 0.25;
-        handVelY += (rawVY - handVelY) * 0.25;
-
-        const tips = [4, 8, 12, 16, 20];
-        let spread = 0;
-        for (let i = 0; i < tips.length; i++) {
-          const tip = landmarks[tips[i]];
-          const dx = tip.x - wrist.x, dy = tip.y - wrist.y;
-          spread += Math.hypot(dx, dy);
-        }
-        spread /= tips.length;
-        const openTarget = Math.max(0, Math.min(1, (spread - 0.11) / 0.24));
-        handOpenness += (openTarget - handOpenness) * 0.5;
-
-        mouseActive = true;
-        mouseX = smoothHandX;
-        mouseY = smoothHandY;
-        handDetected = true;
-
-        if (!smoothPalmDot.init) { smoothPalmDot.x = rawX; smoothPalmDot.y = rawY; smoothPalmDot.init = true; }
-        smoothPalmDot.x += (rawX - smoothPalmDot.x) * FINGER_SMOOTH_K;
-        smoothPalmDot.y += (rawY - smoothPalmDot.y) * FINGER_SMOOTH_K;
-        handDot.style.left = smoothPalmDot.x + 'px';
-        handDot.style.top  = smoothPalmDot.y + 'px';
-        if (!handDot.classList.contains('visible')) handDot.classList.add('visible');
-
-        const tipIds = [4, 8, 12, 16, 20];
-        for (let i = 0; i < tipIds.length; i++) {
-          const tip = landmarks[tipIds[i]];
-          const rawTX = (1 - tip.x) * vw;
-          const rawTY = tip.y * vh;
-          const sf = smoothFingers[i];
-          if (!sf.init) { sf.x = rawTX; sf.y = rawTY; sf.init = true; }
-          sf.x += (rawTX - sf.x) * FINGER_SMOOTH_K;
-          sf.y += (rawTY - sf.y) * FINGER_SMOOTH_K;
-          fingerDots[i].style.left = sf.x + 'px';
-          fingerDots[i].style.top  = sf.y + 'px';
-          if (!fingerDots[i].classList.contains('visible')) fingerDots[i].classList.add('visible');
-        }
-
-      } else {
-        handDetected = false;
-        handDot.classList.remove('visible');
-        for (let i = 0; i < fingerDots.length; i++) fingerDots[i].classList.remove('visible');
-        handVelX *= 0.8; handVelY *= 0.8;
-      }
-    }
-
-    function stopHandTracker() {
-      handTrackerActive = false;
-      handDetected = false;
-      mouseActive = false;
-      if (handCamera) { handCamera.stop(); handCamera = null; }
-      webcamPreview.classList.remove('visible');
-      webcamShowBtn.classList.remove('visible');
-      handDot.classList.remove('visible');
-      for (let i = 0; i < fingerDots.length; i++) fingerDots[i].classList.remove('visible');
-      for (let i = 0; i < smoothFingers.length; i++) smoothFingers[i].init = false;
-      smoothPalmDot.init = false;
-      handTrackerBtn.classList.remove('active', 'loading');
-      handTrackerBtn.textContent = 'Hand Tracker';
-    }
-
-
-    /* =========================================================
-       RESIZE
-       ========================================================= */
-    startHandTracker();
-    currentWaveId = HAND_TRACKER_WAVE_ID;
-    motionCycleBtn.style.display = 'none';
-
+    // Resize handler
     let resizeTimer;
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => {
-        if (cropMode !== 0) updateCropOverlay();
-        fitGenContentToCrop();
-        // Resize may have changed the crop's viewport fraction; refresh
-        // shape positions via membership pick (which calls computeScatterOffsets).
-        if (isGenerator && genActivated) {
-          pickOutsideCropMembership({ resetAll: false });
-          refreshGenDriftSpeeds();
-        } else {
-          computeScatterOffsets();
-        }
-        fitShapesToCrop();
-        fitPhotosToCrop();
-        if (logoCheck.checked) positionWatermark();
-      }, 80);
+      resizeTimer = setTimeout(computeScatterOffsets, 80);
+    });
+
+    const waveHud = document.getElementById('waveHud');
+    const waveTypeLabel = document.getElementById('waveTypeLabel');
+
+    waveHud.addEventListener('click', e => {
+      e.stopPropagation();
+      const prevV = waveVariantTo;
+      const nextV = (prevV + 1) % WAVE_VARIANT_LABELS.length;
+      waveVariantFrom = prevV;
+      waveVariantTo = nextV;
+      waveVariantBlendT = 0;
+      waveTypeLabel.textContent = WAVE_VARIANT_LABELS[nextV];
     });
   </script>
 </body>
